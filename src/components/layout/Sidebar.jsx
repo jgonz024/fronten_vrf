@@ -1,6 +1,5 @@
 import React from 'react';
 import logoImg from '../../assets/images/logo.png';
-import iconImg from '../../assets/images/icon.png';
 
 export default function Sidebar({ activeTab, setActiveTab }) {
   const menuItems = [
@@ -18,7 +17,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
       flexDirection: 'column',
       gap: '24px'
     }}>
-      {/* Brand Header Integrado con Icono Circular de Sello Oficial */}
+      {/* Brand Header Integrado con Logo Horizontal Exclusivo */}
       <div style={{
         background: 'rgba(15, 25, 50, 0.7)',
         borderRadius: 'var(--radius-sm)',
@@ -27,37 +26,27 @@ export default function Sidebar({ activeTab, setActiveTab }) {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: '12px',
+        gap: '10px',
         boxShadow: '0 4px 16px rgba(0, 0, 0, 0.4)'
       }}>
-        {/* Fila del Icono de Sello Oficial y Logo */}
+        {/* Badge Blanco para Logo VRF SYSTEMS® */}
         <div style={{
           background: 'linear-gradient(135deg, #ffffff, #f0f6ff)',
-          borderRadius: '12px',
+          borderRadius: '10px',
           padding: '10px 14px',
           width: '100%',
           display: 'flex',
+          justifyContent: 'center',
           alignItems: 'center',
-          gap: '10px',
           boxShadow: '0 4px 14px rgba(0, 0, 0, 0.25)'
         }}>
-          <img
-            src={iconImg}
-            alt="VRF Seal Icon"
-            style={{
-              width: '42px',
-              height: '42px',
-              objectFit: 'contain',
-              flexShrink: 0
-            }}
-          />
           <img
             src={logoImg}
             alt="VRF SYSTEMS®"
             style={{
-              flex: 1,
+              width: '100%',
               height: 'auto',
-              maxHeight: '38px',
+              maxHeight: '46px',
               objectFit: 'contain'
             }}
           />
