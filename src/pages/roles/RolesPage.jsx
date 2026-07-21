@@ -1,80 +1,107 @@
 import React, { useState, useEffect } from 'react';
+import { fetchRoles, createRol, updateRol, deleteRol, restoreRol } from '../../api/roles.api';
 import RoleList from './RoleList';
 import RoleAdd from './RoleAdd';
 import RoleEdit from './RoleEdit';
-import { fetchRoles, createRol, updateRol, deleteRol } from '../../api/roles.api';
 
-export default function RolesPage() {
-  const [view, setView] = useState('list');
+export default function RolesPage({ userSession }) {
   const [roles, setRoles] = useState([]);
-  const [selectedRol, setSelectedRol] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [view, setView] = useState('list'); // 'list' | 'add' | 'edit'
+  const [selectedRole, setSelectedRole] = useState(null);
+
+  const isAdmin = userSession?.usuario?.roles?.some(r => r.nombre === 'ADMINISTRADOR');
 
   const loadData = async () => {
-    setIsLoading(true);
+    setLoading(true);
+    setError('');
     try {
-      const data = await fetchRoles();
+      const data = await fetchRoles(isAdmin);
       setRoles(data);
     } catch (err) {
-      console.error(err);
+      setError(err.message || 'Error al obtener roles');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [isAdmin]);
 
-  const handleCreate = async (formData) => {
+  const handleSaveAdd = async (formData) => {
     await createRol(formData);
     await loadData();
     setView('list');
   };
 
-  const handleUpdate = async (id, formData) => {
+  const handleSaveEdit = async (id, formData) => {
     await updateRol(id, formData);
     await loadData();
-    setSelectedRol(null);
     setView('list');
+    setSelectedRole(null);
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm(`¿Estás seguro de que deseas eliminar el rol #${id}?`)) {
-      await deleteRol(id);
-      await loadData();
+    if (window.confirm(`¿Estás seguro de eliminar el rol #${id}?`)) {
+      try {
+        await deleteRol(id);
+        await loadData();
+      } catch (err) {
+        alert(err.message || 'Error al eliminar');
+      }
     }
   };
 
-  const startEdit = (rol) => {
-    setSelectedRol(rol);
-    setView('edit');
+  const handleRestore = async (id) => {
+    try {
+      await restoreRol(id);
+      await loadData();
+    } catch (err) {
+      alert(err.message || 'Error al restaurar');
+    }
   };
+
+  if (loading) {
+    return (
+      <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+        ⏳ Cargando roles desde PostgreSQL...
+      </div>
+    );
+  }
 
   return (
     <div>
+      {error && (
+        <div style={{ padding: '12px 16px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: 'var(--radius-sm)', color: '#fca5a5', marginBottom: '20px' }}>
+          ⚠️ {error}
+        </div>
+      )}
+
       {view === 'list' && (
         <RoleList
           roles={roles}
-          isLoading={isLoading}
-          onAddClick={() => setView('add')}
-          onEditClick={startEdit}
-          onDeleteClick={handleDelete}
+          isAdmin={isAdmin}
+          onAddNew={() => setView('add')}
+          onEdit={(role) => { setSelectedRole(role); setView('edit'); }}
+          onDelete={handleDelete}
+          onRestore={handleRestore}
         />
       )}
 
       {view === 'add' && (
         <RoleAdd
-          onSave={handleCreate}
+          onSave={handleSaveAdd}
           onCancel={() => setView('list')}
         />
       )}
 
-      {view === 'edit' && selectedRol && (
+      {view === 'edit' && (
         <RoleEdit
-          rol={selectedRol}
-          onSave={handleUpdate}
-          onCancel={() => { setSelectedRol(null); setView('list'); }}
+          role={selectedRole}
+          onSave={handleSaveEdit}
+          onCancel={() => { setView('list'); setSelectedRole(null); }}
         />
       )}
     </div>

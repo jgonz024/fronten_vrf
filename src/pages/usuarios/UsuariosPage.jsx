@@ -1,93 +1,107 @@
 import React, { useState, useEffect } from 'react';
+import { fetchUsuarios, createUsuario, updateUsuario, deleteUsuario, restoreUsuario } from '../../api/usuarios.api';
 import UsuarioList from './UsuarioList';
 import UsuarioAdd from './UsuarioAdd';
 import UsuarioEdit from './UsuarioEdit';
-import { fetchUsuarios, createUsuario, updateUsuario, resetPasswordAdminApi, deleteUsuario } from '../../api/usuarios.api';
 
-export default function UsuariosPage() {
-  const [view, setView] = useState('list'); // 'list' | 'add' | 'edit'
+export default function UsuariosPage({ userSession }) {
   const [usuarios, setUsuarios] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [view, setView] = useState('list'); // 'list' | 'add' | 'edit'
   const [selectedUsuario, setSelectedUsuario] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+
+  const isAdmin = userSession?.usuario?.roles?.some(r => r.nombre === 'ADMINISTRADOR');
 
   const loadData = async () => {
-    setIsLoading(true);
+    setLoading(true);
+    setError('');
     try {
-      const data = await fetchUsuarios();
+      const data = await fetchUsuarios(isAdmin);
       setUsuarios(data);
     } catch (err) {
-      console.error(err);
+      setError(err.message || 'Error al obtener usuarios');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [isAdmin]);
 
-  const handleCreate = async (formData) => {
+  const handleSaveAdd = async (formData) => {
     await createUsuario(formData);
     await loadData();
     setView('list');
   };
 
-  const handleUpdate = async (id, formData) => {
+  const handleSaveEdit = async (id, formData) => {
     await updateUsuario(id, formData);
     await loadData();
-    setSelectedUsuario(null);
     setView('list');
+    setSelectedUsuario(null);
   };
 
-  const handleResetPassword = async (usuario) => {
-    if (window.confirm(`¿Estás seguro de que deseas restablecer la clave del usuario "${usuario.nombre}" a la contraseña por defecto (Vrf12345)? El usuario deberá cambiarla obligatoriamente en su siguiente ingreso.`)) {
+  const handleDelete = async (id) => {
+    if (window.confirm(`¿Estás seguro de desactivar/eliminar lógicamente el usuario #${id}?`)) {
       try {
-        await resetPasswordAdminApi(usuario.id);
-        alert(`La contraseña de ${usuario.nombre} fue restablecida exitosamente a Vrf12345`);
+        await deleteUsuario(id);
         await loadData();
       } catch (err) {
-        alert(err.message || 'Error al restablecer contraseña');
+        alert(err.message || 'Error al eliminar');
       }
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm(`¿Estás seguro de que deseas eliminar el usuario #${id}?`)) {
-      await deleteUsuario(id);
+  const handleRestore = async (id) => {
+    try {
+      await restoreUsuario(id);
       await loadData();
+    } catch (err) {
+      alert(err.message || 'Error al restaurar');
     }
   };
 
-  const startEdit = (usuario) => {
-    setSelectedUsuario(usuario);
-    setView('edit');
-  };
+  if (loading) {
+    return (
+      <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+        ⏳ Cargando usuarios desde PostgreSQL...
+      </div>
+    );
+  }
 
   return (
     <div>
+      {error && (
+        <div style={{ padding: '12px 16px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: 'var(--radius-sm)', color: '#fca5a5', marginBottom: '20px' }}>
+          ⚠️ {error}
+        </div>
+      )}
+
       {view === 'list' && (
         <UsuarioList
           usuarios={usuarios}
-          isLoading={isLoading}
-          onAddClick={() => setView('add')}
-          onEditClick={startEdit}
-          onResetPasswordClick={handleResetPassword}
-          onDeleteClick={handleDelete}
+          isAdmin={isAdmin}
+          onAddNew={() => setView('add')}
+          onEdit={(u) => { setSelectedUsuario(u); setView('edit'); }}
+          onDelete={handleDelete}
+          onRestore={handleRestore}
         />
       )}
 
       {view === 'add' && (
         <UsuarioAdd
-          onSave={handleCreate}
+          onSave={handleSaveAdd}
           onCancel={() => setView('list')}
         />
       )}
 
-      {view === 'edit' && selectedUsuario && (
+      {view === 'edit' && (
         <UsuarioEdit
           usuario={selectedUsuario}
-          onSave={handleUpdate}
-          onCancel={() => { setSelectedUsuario(null); setView('list'); }}
+          onSave={handleSaveEdit}
+          onCancel={() => { setView('list'); setSelectedUsuario(null); }}
         />
       )}
     </div>

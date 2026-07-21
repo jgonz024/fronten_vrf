@@ -1,21 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { fetchTiposCliente, createTipoCliente, updateTipoCliente, deleteTipoCliente } from '../../api/tipoCliente.api';
+import { fetchTiposCliente, createTipoCliente, updateTipoCliente, deleteTipoCliente, restoreTipoCliente } from '../../api/tipoCliente.api';
 import TipoClienteList from './TipoClienteList';
 import TipoClienteAdd from './TipoClienteAdd';
 import TipoClienteEdit from './TipoClienteEdit';
 
-export default function TipoClientesPage() {
+export default function TipoClientesPage({ userSession }) {
   const [tipos, setTipos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [view, setView] = useState('list'); // 'list' | 'add' | 'edit'
   const [selectedTipo, setSelectedTipo] = useState(null);
 
+  const isAdmin = userSession?.usuario?.roles?.some(r => r.nombre === 'ADMINISTRADOR');
+
   const loadData = async () => {
     setLoading(true);
     setError('');
     try {
-      const data = await fetchTiposCliente();
+      const data = await fetchTiposCliente(isAdmin);
       setTipos(data);
     } catch (err) {
       setError(err.message || 'Error al obtener tipos de cliente');
@@ -26,7 +28,7 @@ export default function TipoClientesPage() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [isAdmin]);
 
   const handleSaveAdd = async (formData) => {
     await createTipoCliente(formData);
@@ -52,6 +54,15 @@ export default function TipoClientesPage() {
     }
   };
 
+  const handleRestore = async (id) => {
+    try {
+      await restoreTipoCliente(id);
+      await loadData();
+    } catch (err) {
+      alert(err.message || 'Error al restaurar');
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
@@ -71,9 +82,11 @@ export default function TipoClientesPage() {
       {view === 'list' && (
         <TipoClienteList
           tipos={tipos}
+          isAdmin={isAdmin}
           onAddNew={() => setView('add')}
           onEdit={(tipo) => { setSelectedTipo(tipo); setView('edit'); }}
           onDelete={handleDelete}
+          onRestore={handleRestore}
         />
       )}
 

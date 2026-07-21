@@ -1,21 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { fetchClientes, createCliente, updateCliente, deleteCliente } from '../../api/clientes.api';
+import { fetchClientes, createCliente, updateCliente, deleteCliente, restoreCliente } from '../../api/clientes.api';
 import ClienteList from './ClienteList';
 import ClienteAdd from './ClienteAdd';
 import ClienteEdit from './ClienteEdit';
 
-export default function ClientesPage() {
+export default function ClientesPage({ userSession }) {
   const [clientes, setClientes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [view, setView] = useState('list'); // 'list' | 'add' | 'edit'
   const [selectedCliente, setSelectedCliente] = useState(null);
 
+  const isAdmin = userSession?.usuario?.roles?.some(r => r.nombre === 'ADMINISTRADOR');
+
   const loadData = async () => {
     setLoading(true);
     setError('');
     try {
-      const data = await fetchClientes();
+      const data = await fetchClientes(isAdmin);
       setClientes(data);
     } catch (err) {
       setError(err.message || 'Error al obtener clientes');
@@ -26,7 +28,7 @@ export default function ClientesPage() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [isAdmin]);
 
   const handleSaveAdd = async (formData) => {
     await createCliente(formData);
@@ -42,7 +44,7 @@ export default function ClientesPage() {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm(`¿Estás seguro de eliminar el cliente #${id}?`)) {
+    if (window.confirm(`¿Estás seguro de desactivar/eliminar lógicamente el cliente #${id}?`)) {
       try {
         await deleteCliente(id);
         await loadData();
@@ -52,10 +54,19 @@ export default function ClientesPage() {
     }
   };
 
+  const handleRestore = async (id) => {
+    try {
+      await restoreCliente(id);
+      await loadData();
+    } catch (err) {
+      alert(err.message || 'Error al restaurar');
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-        ⏳ Cargando 1,431 clientes desde PostgreSQL...
+        ⏳ Cargando clientes desde PostgreSQL...
       </div>
     );
   }
@@ -71,9 +82,11 @@ export default function ClientesPage() {
       {view === 'list' && (
         <ClienteList
           clientes={clientes}
+          isAdmin={isAdmin}
           onAddNew={() => setView('add')}
           onEdit={(cli) => { setSelectedCliente(cli); setView('edit'); }}
           onDelete={handleDelete}
+          onRestore={handleRestore}
         />
       )}
 

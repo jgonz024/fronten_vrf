@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export default function ClienteList({ clientes, onAddNew, onEdit, onDelete }) {
+export default function ClienteList({ clientes, isAdmin, onAddNew, onEdit, onDelete, onRestore }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 20;
@@ -71,32 +71,51 @@ export default function ClienteList({ clientes, onAddNew, onEdit, onDelete }) {
                 </td>
               </tr>
             ) : (
-              currentItems.map(item => (
-                <tr key={item.id}>
-                  <td><span style={{ fontWeight: 700, color: 'var(--accent-cyan)' }}>#{item.id}</span></td>
-                  <td>
-                    <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>🏢 {item.cliente}</div>
-                  </td>
-                  <td>
-                    <span className="badge badge-active" style={{ fontSize: '11px' }}>
-                      ⭐ {item.categoria_cliente_nombre || 'General'}
-                    </span>
-                  </td>
-                  <td style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{item.contacto || '-'}</td>
-                  <td style={{ fontSize: '12px' }}>{item.telefono || '-'}</td>
-                  <td style={{ fontSize: '12px', color: 'var(--accent-cyan)' }}>{item.email || '-'}</td>
-                  <td>
-                    <div style={{ display: 'flex', gap: '6px' }}>
-                      <button onClick={() => onEdit(item)} className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '11px' }}>
-                        ✏️ Editar
-                      </button>
-                      <button onClick={() => onDelete(item.id)} className="btn btn-danger" style={{ padding: '4px 8px', fontSize: '11px' }}>
-                        🗑️ Eliminar
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
+              currentItems.map(item => {
+                const isDeleted = item.eliminado;
+                return (
+                  <tr
+                    key={item.id}
+                    style={isDeleted ? { opacity: 0.5, background: 'rgba(239, 68, 68, 0.08)' } : {}}
+                  >
+                    <td><span style={{ fontWeight: 700, color: isDeleted ? '#f87171' : 'var(--accent-cyan)' }}>#{item.id}</span></td>
+                    <td>
+                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                        🏢 {item.cliente}
+                        {isDeleted && <span style={{ marginLeft: '8px', fontSize: '10px', color: '#fca5a5' }}>(Eliminado Lógicamente)</span>}
+                      </div>
+                    </td>
+                    <td>
+                      <span className="badge badge-active" style={{ fontSize: '11px' }}>
+                        ⭐ {item.categoria_cliente_nombre || 'General'}
+                      </span>
+                    </td>
+                    <td style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{item.contacto || '-'}</td>
+                    <td style={{ fontSize: '12px' }}>{item.telefono || '-'}</td>
+                    <td style={{ fontSize: '12px', color: 'var(--accent-cyan)' }}>{item.email || '-'}</td>
+                    <td>
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        {isDeleted ? (
+                          isAdmin && (
+                            <button onClick={() => onRestore(item.id)} className="btn btn-primary" style={{ padding: '4px 8px', fontSize: '11px' }}>
+                              🔄 Restaurar
+                            </button>
+                          )
+                        ) : (
+                          <>
+                            <button onClick={() => onEdit(item)} className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '11px' }}>
+                              ✏️ Editar
+                            </button>
+                            <button onClick={() => onDelete(item.id)} className="btn btn-danger" style={{ padding: '4px 8px', fontSize: '11px' }}>
+                              🗑️ Eliminar
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>

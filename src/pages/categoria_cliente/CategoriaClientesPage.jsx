@@ -1,21 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { fetchCategoriasCliente, createCategoriaCliente, updateCategoriaCliente, deleteCategoriaCliente } from '../../api/categoriaCliente.api';
+import { fetchCategoriasCliente, createCategoriaCliente, updateCategoriaCliente, deleteCategoriaCliente, restoreCategoriaCliente } from '../../api/categoriaCliente.api';
 import CategoriaClienteList from './CategoriaClienteList';
 import CategoriaClienteAdd from './CategoriaClienteAdd';
 import CategoriaClienteEdit from './CategoriaClienteEdit';
 
-export default function CategoriaClientesPage() {
+export default function CategoriaClientesPage({ userSession }) {
   const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [view, setView] = useState('list'); // 'list' | 'add' | 'edit'
   const [selectedCategoria, setSelectedCategoria] = useState(null);
 
+  const isAdmin = userSession?.usuario?.roles?.some(r => r.nombre === 'ADMINISTRADOR');
+
   const loadData = async () => {
     setLoading(true);
     setError('');
     try {
-      const data = await fetchCategoriasCliente();
+      const data = await fetchCategoriasCliente(isAdmin);
       setCategorias(data);
     } catch (err) {
       setError(err.message || 'Error al obtener categorías de cliente');
@@ -26,7 +28,7 @@ export default function CategoriaClientesPage() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [isAdmin]);
 
   const handleSaveAdd = async (formData) => {
     await createCategoriaCliente(formData);
@@ -52,6 +54,15 @@ export default function CategoriaClientesPage() {
     }
   };
 
+  const handleRestore = async (id) => {
+    try {
+      await restoreCategoriaCliente(id);
+      await loadData();
+    } catch (err) {
+      alert(err.message || 'Error al restaurar');
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
@@ -71,9 +82,11 @@ export default function CategoriaClientesPage() {
       {view === 'list' && (
         <CategoriaClienteList
           categorias={categorias}
+          isAdmin={isAdmin}
           onAddNew={() => setView('add')}
           onEdit={(cat) => { setSelectedCategoria(cat); setView('edit'); }}
           onDelete={handleDelete}
+          onRestore={handleRestore}
         />
       )}
 

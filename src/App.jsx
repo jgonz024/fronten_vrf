@@ -85,11 +85,11 @@ export default function App() {
         onOpenProfile={() => setShowPerfilModal(true)}
         onLogout={handleLogout}
       >
-        {activeTab === 'usuarios' && <UsuariosPage />}
-        {activeTab === 'roles' && <RolesPage />}
-        {activeTab === 'clientes' && <ClientesPage />}
-        {activeTab === 'tipo_cliente' && <TipoClientesPage />}
-        {activeTab === 'categoria_cliente' && <CategoriaClientesPage />}
+        {activeTab === 'usuarios' && <UsuariosPage userSession={session} />}
+        {activeTab === 'roles' && <RolesPage userSession={session} />}
+        {activeTab === 'clientes' && <ClientesPage userSession={session} />}
+        {activeTab === 'tipo_cliente' && <TipoClientesPage userSession={session} />}
+        {activeTab === 'categoria_cliente' && <CategoriaClientesPage userSession={session} />}
       </MainLayout>
     </>
   );

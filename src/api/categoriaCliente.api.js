@@ -1,8 +1,9 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 const API_URL = `${API_BASE_URL}/categoria-cliente`;
 
-export async function fetchCategoriasCliente() {
-  const res = await fetch(API_URL);
+export async function fetchCategoriasCliente(includeDeleted = false) {
+  const url = includeDeleted ? `${API_URL}?includeDeleted=true` : API_URL;
+  const res = await fetch(url);
   if (!res.ok) throw new Error('Error al conectar con la API de categorías de cliente');
   const json = await res.json();
   return json.data;
@@ -47,4 +48,11 @@ export async function deleteCategoriaCliente(id) {
   const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
   if (!res.ok) throw new Error('Error al eliminar categoría de cliente');
   return await res.json();
+}
+
+export async function restoreCategoriaCliente(id) {
+  const res = await fetch(`${API_URL}/${id}/restaurar`, { method: 'POST' });
+  if (!res.ok) throw new Error('Error al restaurar categoría de cliente');
+  const json = await res.json();
+  return json.data;
 }
