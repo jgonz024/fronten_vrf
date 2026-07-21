@@ -10,39 +10,54 @@ export default function Sidebar({ activeTab, setActiveTab }) {
   return (
     <aside style={{
       width: '260px',
-      background: 'rgba(12, 22, 45, 0.9)',
+      background: 'rgba(12, 22, 45, 0.95)',
       borderRight: '1px solid var(--border-color)',
-      padding: '24px 16px',
+      padding: '20px 16px',
       display: 'flex',
       flexDirection: 'column',
       gap: '24px'
     }}>
-      {/* Brand Header con Logo Oficial */}
-      <div style={{ padding: '4px 8px' }}>
+      {/* Brand Header Integrado */}
+      <div style={{
+        background: 'rgba(15, 25, 50, 0.7)',
+        borderRadius: 'var(--radius-sm)',
+        border: '1px solid rgba(0, 198, 255, 0.15)',
+        padding: '12px 14px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '10px',
+        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)'
+      }}>
+        {/* Logo Badge ajustado con bordes suaves */}
         <div style={{
-          background: 'rgba(255, 255, 255, 0.95)',
-          padding: '10px 14px',
-          borderRadius: 'var(--radius-sm)',
-          boxShadow: '0 0 16px rgba(0, 198, 255, 0.25)',
+          background: '#ffffff',
+          borderRadius: '8px',
+          padding: '6px 12px',
+          width: '100%',
           display: 'flex',
-          flexDirection: 'column',
+          justifyContent: 'center',
           alignItems: 'center',
-          gap: '4px'
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.2)'
         }}>
           <img
             src={logoImg}
-            alt="VRF Systems Logo"
-            style={{ width: '100%', maxHeight: '42px', objectFit: 'contain' }}
+            alt="VRF Systems"
+            style={{ maxHeight: '36px', width: 'auto', objectFit: 'contain' }}
           />
-          <span style={{
-            fontSize: '10px',
-            color: '#0072ff',
-            letterSpacing: '0.12em',
-            fontWeight: 700,
-            textTransform: 'uppercase'
-          }}>
-            SUPPORT MANAGEMENT
-          </span>
+        </div>
+
+        {/* Subtítulo Estilizado en Cyan Neón */}
+        <div style={{
+          fontSize: '10px',
+          color: 'var(--accent-cyan)',
+          letterSpacing: '0.14em',
+          fontWeight: 700,
+          textTransform: 'uppercase',
+          textAlign: 'center',
+          textShadow: '0 0 8px rgba(0, 198, 255, 0.3)'
+        }}>
+          SUPPORT MANAGEMENT
         </div>
       </div>
 

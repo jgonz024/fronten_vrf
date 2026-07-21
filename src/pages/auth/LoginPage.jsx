@@ -53,27 +53,38 @@ export default function LoginPage({ onLoginSuccess }) {
       <div className="glass-panel" style={{ width: '100%', maxWidth: '420px', padding: '36px 32px' }}>
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
           <div style={{
-            background: 'rgba(255, 255, 255, 0.95)',
-            padding: '12px 20px',
-            borderRadius: '12px',
-            boxShadow: '0 0 24px rgba(0, 198, 255, 0.35)',
+            background: 'rgba(15, 25, 50, 0.7)',
+            padding: '16px 20px',
+            borderRadius: '16px',
+            border: '1px solid rgba(0, 198, 255, 0.2)',
             display: 'inline-flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: '4px',
-            marginBottom: '16px'
+            gap: '10px',
+            marginBottom: '16px',
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)'
           }}>
-            <img
-              src={logoImg}
-              alt="VRF Systems Logo"
-              style={{ height: '48px', objectFit: 'contain' }}
-            />
+            <div style={{
+              background: '#ffffff',
+              borderRadius: '10px',
+              padding: '8px 16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <img
+                src={logoImg}
+                alt="VRF Systems"
+                style={{ maxHeight: '42px', width: 'auto', objectFit: 'contain' }}
+              />
+            </div>
             <span style={{
-              fontSize: '10px',
-              color: '#0072ff',
-              letterSpacing: '0.12em',
+              fontSize: '11px',
+              color: 'var(--accent-cyan)',
+              letterSpacing: '0.14em',
               fontWeight: 700,
-              textTransform: 'uppercase'
+              textTransform: 'uppercase',
+              textShadow: '0 0 8px rgba(0, 198, 255, 0.3)'
             }}>
               SUPPORT MANAGEMENT
             </span>
