@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { fetchTiposCliente } from '../../api/tipoCliente.api';
 import { fetchCategoriasCliente } from '../../api/categoriaCliente.api';
 
-export default function ClienteEdit({ cliente, onSave, onDelete, onCancel }) {
+export default function ClienteEdit({ cliente, isAdmin, onSave, onDelete, onRestore, onCancel }) {
   const [formData, setFormData] = useState({
     idcliente: '',
     n_cliente: '',
@@ -17,14 +17,15 @@ export default function ClienteEdit({ cliente, onSave, onDelete, onCancel }) {
   const [tipos, setTipos] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [error, setError] = useState('');
+  const [successInfo, setSuccessInfo] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     async function loadSelectors() {
       try {
         const [tData, cData] = await Promise.all([
-          fetchTiposCliente(),
-          fetchCategoriasCliente()
+          fetchTiposCliente(isAdmin),
+          fetchCategoriasCliente(isAdmin)
         ]);
         setTipos(tData);
         setCategorias(cData);
@@ -46,8 +47,10 @@ export default function ClienteEdit({ cliente, onSave, onDelete, onCancel }) {
         email: cliente.email || '',
         id_categoria_cliente: cliente.id_categoria_cliente || ''
       });
+      setError('');
+      setSuccessInfo('');
     }
-  }, [cliente]);
+  }, [cliente, isAdmin]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -57,9 +60,11 @@ export default function ClienteEdit({ cliente, onSave, onDelete, onCancel }) {
     }
 
     setError('');
+    setSuccessInfo('');
     setIsSubmitting(true);
     try {
       await onSave(cliente.id, formData);
+      setSuccessInfo('✓ Cambios guardados correctamente');
     } catch (err) {
       setError(err.message || 'Error al actualizar cliente');
     } finally {
@@ -67,46 +72,113 @@ export default function ClienteEdit({ cliente, onSave, onDelete, onCancel }) {
     }
   };
 
+  const isDeleted = cliente?.eliminado;
+
   return (
-    <div className="glass-panel" style={{ padding: '28px', maxWidth: '640px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h3 style={{ fontSize: '18px', color: 'var(--text-primary)' }}>✏️ Editar Cliente #{cliente?.id}</h3>
-        <button onClick={onCancel} className="btn btn-secondary" style={{ padding: '4px 10px', fontSize: '12px' }}>
-          ✕ Cancelar
-        </button>
+    <div className="glass-panel" style={{
+      padding: '24px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '20px',
+      border: '1px solid rgba(0, 198, 255, 0.3)',
+      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)'
+    }}>
+      {/* Cabecera Superior Estilo Panel Lateral de Detalles */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingBottom: '14px',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+        gap: '12px'
+      }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--accent-cyan)', fontWeight: 700, letterSpacing: '0.1em' }}>
+            DETALLES Y EDICIÓN
+          </div>
+          <h3 style={{ fontSize: '15px', color: '#ffffff', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            🏢 {cliente?.cliente || 'Cliente'}
+          </h3>
+        </div>
+
+        {/* Botones de Acción Superiores */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {isDeleted ? (
+            isAdmin && (
+              <button
+                type="button"
+                onClick={() => onRestore(cliente.id)}
+                className="btn btn-primary"
+                style={{ padding: '6px 10px', fontSize: '12px' }}
+                title="Restaurar este cliente"
+              >
+                🔄 Restaurar
+              </button>
+            )
+          ) : (
+            <button
+              type="button"
+              onClick={() => onDelete(cliente.id)}
+              className="btn btn-danger"
+              style={{ padding: '6px 10px', fontSize: '12px' }}
+              title="Eliminar lógicamente este cliente"
+            >
+              🗑️
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={onCancel}
+            className="btn btn-secondary"
+            style={{ padding: '6px 10px', fontSize: '12px' }}
+            title="Cerrar panel"
+          >
+            ✕
+          </button>
+        </div>
       </div>
 
       {error && (
-        <div style={{ padding: '10px 14px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: 'var(--radius-sm)', color: '#fca5a5', fontSize: '13px', marginBottom: '16px' }}>
+        <div style={{ padding: '10px 14px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: 'var(--radius-sm)', color: '#fca5a5', fontSize: '12px' }}>
           ⚠️ {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-          <div className="form-group">
-            <label className="form-label">Código Interno (ID Cliente)</label>
-            <input
-              type="text"
-              className="form-input"
-              value={formData.idcliente}
-              onChange={e => setFormData({ ...formData, idcliente: e.target.value })}
-            />
-          </div>
+      {successInfo && (
+        <div style={{ padding: '10px 14px', background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(52, 211, 153, 0.4)', borderRadius: 'var(--radius-sm)', color: '#34d399', fontSize: '12px' }}>
+          {successInfo}
+        </div>
+      )}
 
-          <div className="form-group">
-            <label className="form-label">N° de Cliente</label>
+      {/* Formulario Editable en Vivo */}
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label className="form-label" style={{ fontSize: '11px' }}>N° del Cliente</label>
             <input
               type="text"
               className="form-input"
               value={formData.n_cliente}
               onChange={e => setFormData({ ...formData, n_cliente: e.target.value })}
+              placeholder="Ej. CL-6"
+            />
+          </div>
+
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label className="form-label" style={{ fontSize: '11px' }}>Código Interno (ID Cliente)</label>
+            <input
+              type="text"
+              className="form-input"
+              value={formData.idcliente}
+              onChange={e => setFormData({ ...formData, idcliente: e.target.value })}
+              placeholder="Ej. 3E63D07B"
             />
           </div>
         </div>
 
-        <div className="form-group">
-          <label className="form-label">Nombre / Razón Social *</label>
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label" style={{ fontSize: '11px' }}>Nombre (o Razón Social) del Cliente *</label>
           <input
             type="text"
             className="form-input"
@@ -116,102 +188,88 @@ export default function ClienteEdit({ cliente, onSave, onDelete, onCancel }) {
           />
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-          <div className="form-group">
-            <label className="form-label">Tipo de Cliente (FK)</label>
-            <select
-              className="form-input"
-              value={formData.id_tipo_cliente}
-              onChange={e => setFormData({ ...formData, id_tipo_cliente: e.target.value })}
-            >
-              {tipos.map(t => (
-                <option key={t.id} value={t.id} style={{ background: '#0b1329' }}>
-                  {t.nombre}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Categoría / Marca (FK)</label>
-            <select
-              className="form-input"
-              value={formData.id_categoria_cliente}
-              onChange={e => setFormData({ ...formData, id_categoria_cliente: e.target.value })}
-            >
-              {categorias.map(c => (
-                <option key={c.id} value={c.id} style={{ background: '#0b1329' }}>
-                  {c.nombre}
-                </option>
-              ))}
-            </select>
-          </div>
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label" style={{ fontSize: '11px' }}>Tipo de Cliente</label>
+          <select
+            className="form-input"
+            value={formData.id_tipo_cliente}
+            onChange={e => setFormData({ ...formData, id_tipo_cliente: e.target.value })}
+          >
+            {tipos.map(t => (
+              <option key={t.id} value={t.id} style={{ background: '#0b1329' }}>
+                {t.nombre}
+              </option>
+            ))}
+          </select>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-          <div className="form-group">
-            <label className="form-label">Contacto Responsable</label>
-            <input
-              type="text"
-              className="form-input"
-              value={formData.contacto}
-              onChange={e => setFormData({ ...formData, contacto: e.target.value })}
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">RUT</label>
-            <input
-              type="text"
-              className="form-input"
-              value={formData.rut}
-              onChange={e => setFormData({ ...formData, rut: e.target.value })}
-            />
-          </div>
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label" style={{ fontSize: '11px' }}>Categoría / Marca del Cliente</label>
+          <select
+            className="form-input"
+            value={formData.id_categoria_cliente}
+            onChange={e => setFormData({ ...formData, id_categoria_cliente: e.target.value })}
+          >
+            {categorias.map(c => (
+              <option key={c.id} value={c.id} style={{ background: '#0b1329' }}>
+                {c.nombre}
+              </option>
+            ))}
+          </select>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-          <div className="form-group">
-            <label className="form-label">Teléfono de Contacto</label>
-            <input
-              type="text"
-              className="form-input"
-              value={formData.telefono}
-              onChange={e => setFormData({ ...formData, telefono: e.target.value })}
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Correo Electrónico</label>
-            <input
-              type="email"
-              className="form-input"
-              value={formData.email}
-              onChange={e => setFormData({ ...formData, email: e.target.value })}
-            />
-          </div>
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label" style={{ fontSize: '11px' }}>RUT del Cliente</label>
+          <input
+            type="text"
+            className="form-input"
+            value={formData.rut}
+            onChange={e => setFormData({ ...formData, rut: e.target.value })}
+            placeholder="6.517.759-6"
+          />
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px' }}>
-          {onDelete && cliente?.id && (
-            <button
-              type="button"
-              onClick={() => onDelete(cliente.id)}
-              className="btn btn-danger"
-              style={{ fontSize: '13px' }}
-            >
-              🗑️ Eliminar Cliente
-            </button>
-          )}
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label" style={{ fontSize: '11px' }}>Nombre Persona de Contacto</label>
+          <input
+            type="text"
+            className="form-input"
+            value={formData.contacto}
+            onChange={e => setFormData({ ...formData, contacto: e.target.value })}
+            placeholder="Ej. HISENSE GORENJE CHILE SPA"
+          />
+        </div>
 
-          <div style={{ display: 'flex', gap: '12px', marginLeft: 'auto' }}>
-            <button type="button" onClick={onCancel} className="btn btn-secondary">
-              Cancelar
-            </button>
-            <button type="submit" disabled={isSubmitting} className="btn btn-primary">
-              {isSubmitting ? 'Actualizando...' : '💾 Guardar Cambios'}
-            </button>
-          </div>
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label" style={{ fontSize: '11px' }}>Teléfono de Contacto</label>
+          <input
+            type="text"
+            className="form-input"
+            value={formData.telefono}
+            onChange={e => setFormData({ ...formData, telefono: e.target.value })}
+            placeholder="8004473673"
+          />
+        </div>
+
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label" style={{ fontSize: '11px' }}>Email de Contacto</label>
+          <input
+            type="email"
+            className="form-input"
+            value={formData.email}
+            onChange={e => setFormData({ ...formData, email: e.target.value })}
+            placeholder="contacto@empresa.com"
+          />
+        </div>
+
+        {/* Pie del Panel con Botón Guardar */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px', paddingTop: '14px', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
+          <button type="button" onClick={onCancel} className="btn btn-secondary" style={{ fontSize: '12px' }}>
+            Cancelar
+          </button>
+          <button type="submit" disabled={isSubmitting} className="btn btn-primary" style={{ fontSize: '12px' }}>
+            {isSubmitting ? 'Guardando...' : '✏️ Guardar Cambios'}
+          </button>
         </div>
       </form>
     </div>

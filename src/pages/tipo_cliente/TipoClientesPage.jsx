@@ -8,7 +8,8 @@ export default function TipoClientesPage({ userSession }) {
   const [tipos, setTipos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [view, setView] = useState('list'); // 'list' | 'add' | 'edit'
+  
+  const [panelMode, setPanelMode] = useState('closed'); // 'closed' | 'add' | 'edit'
   const [selectedTipo, setSelectedTipo] = useState(null);
 
   const isAdmin = userSession?.usuario?.roles?.some(r => r.nombre === 'ADMINISTRADOR');
@@ -19,6 +20,11 @@ export default function TipoClientesPage({ userSession }) {
     try {
       const data = await fetchTiposCliente(isAdmin);
       setTipos(data);
+
+      if (selectedTipo) {
+        const updated = data.find(t => t.id === selectedTipo.id);
+        if (updated) setSelectedTipo(updated);
+      }
     } catch (err) {
       setError(err.message || 'Error al obtener tipos de cliente');
     } finally {
@@ -30,17 +36,35 @@ export default function TipoClientesPage({ userSession }) {
     loadData();
   }, [isAdmin]);
 
+  const handleSelectForEdit = (tipo) => {
+    setSelectedTipo(tipo);
+    setPanelMode('edit');
+  };
+
+  const handleStartAdd = () => {
+    setSelectedTipo(null);
+    setPanelMode('add');
+  };
+
+  const handleClosePanel = () => {
+    setPanelMode('closed');
+    setSelectedTipo(null);
+  };
+
   const handleSaveAdd = async (formData) => {
-    await createTipoCliente(formData);
+    const nuevo = await createTipoCliente(formData);
     await loadData();
-    setView('list');
+    if (nuevo && nuevo.id) {
+      setSelectedTipo(nuevo);
+      setPanelMode('edit');
+    } else {
+      setPanelMode('closed');
+    }
   };
 
   const handleSaveEdit = async (id, formData) => {
     await updateTipoCliente(id, formData);
     await loadData();
-    setView('list');
-    setSelectedTipo(null);
   };
 
   const handleDelete = async (id) => {
@@ -63,7 +87,7 @@ export default function TipoClientesPage({ userSession }) {
     }
   };
 
-  if (loading) {
+  if (loading && tipos.length === 0) {
     return (
       <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
         ⏳ Cargando tipos de cliente desde PostgreSQL...
@@ -79,31 +103,48 @@ export default function TipoClientesPage({ userSession }) {
         </div>
       )}
 
-      {view === 'list' && (
-        <TipoClienteList
-          tipos={tipos}
-          isAdmin={isAdmin}
-          onAddNew={() => setView('add')}
-          onEdit={(tipo) => { setSelectedTipo(tipo); setView('edit'); }}
-          onDelete={handleDelete}
-          onRestore={handleRestore}
-        />
-      )}
+      <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <TipoClienteList
+            tipos={tipos}
+            isAdmin={isAdmin}
+            selectedTipoId={selectedTipo?.id}
+            onAddNew={handleStartAdd}
+            onSelectTipo={handleSelectForEdit}
+            onDelete={handleDelete}
+            onRestore={handleRestore}
+          />
+        </div>
 
-      {view === 'add' && (
-        <TipoClienteAdd
-          onSave={handleSaveAdd}
-          onCancel={() => setView('list')}
-        />
-      )}
+        {panelMode !== 'closed' && (
+          <div style={{
+            width: '440px',
+            flexShrink: 0,
+            position: 'sticky',
+            top: '20px',
+            maxHeight: 'calc(100vh - 120px)',
+            overflowY: 'auto'
+          }}>
+            {panelMode === 'add' && (
+              <TipoClienteAdd
+                onSave={handleSaveAdd}
+                onCancel={handleClosePanel}
+              />
+            )}
 
-      {view === 'edit' && (
-        <TipoClienteEdit
-          tipo={selectedTipo}
-          onSave={handleSaveEdit}
-          onCancel={() => { setView('list'); setSelectedTipo(null); }}
-        />
-      )}
+            {panelMode === 'edit' && selectedTipo && (
+              <TipoClienteEdit
+                tipo={selectedTipo}
+                isAdmin={isAdmin}
+                onSave={handleSaveEdit}
+                onDelete={handleDelete}
+                onRestore={handleRestore}
+                onCancel={handleClosePanel}
+              />
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -8,7 +8,9 @@ export default function UsuariosPage({ userSession }) {
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [view, setView] = useState('list'); // 'list' | 'add' | 'edit'
+  
+  // Panel lateral derecho ('closed' | 'add' | 'edit')
+  const [panelMode, setPanelMode] = useState('closed');
   const [selectedUsuario, setSelectedUsuario] = useState(null);
 
   const isAdmin = userSession?.usuario?.roles?.some(r => r.nombre === 'ADMINISTRADOR');
@@ -19,6 +21,11 @@ export default function UsuariosPage({ userSession }) {
     try {
       const data = await fetchUsuarios(isAdmin);
       setUsuarios(data);
+
+      if (selectedUsuario) {
+        const updated = data.find(u => u.id === selectedUsuario.id);
+        if (updated) setSelectedUsuario(updated);
+      }
     } catch (err) {
       setError(err.message || 'Error al obtener usuarios');
     } finally {
@@ -30,17 +37,35 @@ export default function UsuariosPage({ userSession }) {
     loadData();
   }, [isAdmin]);
 
+  const handleSelectForEdit = (usuario) => {
+    setSelectedUsuario(usuario);
+    setPanelMode('edit');
+  };
+
+  const handleStartAdd = () => {
+    setSelectedUsuario(null);
+    setPanelMode('add');
+  };
+
+  const handleClosePanel = () => {
+    setPanelMode('closed');
+    setSelectedUsuario(null);
+  };
+
   const handleSaveAdd = async (formData) => {
-    await createUsuario(formData);
+    const nuevo = await createUsuario(formData);
     await loadData();
-    setView('list');
+    if (nuevo && nuevo.id) {
+      setSelectedUsuario(nuevo);
+      setPanelMode('edit');
+    } else {
+      setPanelMode('closed');
+    }
   };
 
   const handleSaveEdit = async (id, formData) => {
     await updateUsuario(id, formData);
     await loadData();
-    setView('list');
-    setSelectedUsuario(null);
   };
 
   const handleDelete = async (id) => {
@@ -63,7 +88,7 @@ export default function UsuariosPage({ userSession }) {
     }
   };
 
-  if (loading) {
+  if (loading && usuarios.length === 0) {
     return (
       <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
         ⏳ Cargando usuarios desde PostgreSQL...
@@ -79,31 +104,48 @@ export default function UsuariosPage({ userSession }) {
         </div>
       )}
 
-      {view === 'list' && (
-        <UsuarioList
-          usuarios={usuarios}
-          isAdmin={isAdmin}
-          onAddNew={() => setView('add')}
-          onEdit={(u) => { setSelectedUsuario(u); setView('edit'); }}
-          onDelete={handleDelete}
-          onRestore={handleRestore}
-        />
-      )}
+      <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <UsuarioList
+            usuarios={usuarios}
+            isAdmin={isAdmin}
+            selectedUsuarioId={selectedUsuario?.id}
+            onAddNew={handleStartAdd}
+            onSelectUsuario={handleSelectForEdit}
+            onDelete={handleDelete}
+            onRestore={handleRestore}
+          />
+        </div>
 
-      {view === 'add' && (
-        <UsuarioAdd
-          onSave={handleSaveAdd}
-          onCancel={() => setView('list')}
-        />
-      )}
+        {panelMode !== 'closed' && (
+          <div style={{
+            width: '450px',
+            flexShrink: 0,
+            position: 'sticky',
+            top: '20px',
+            maxHeight: 'calc(100vh - 120px)',
+            overflowY: 'auto'
+          }}>
+            {panelMode === 'add' && (
+              <UsuarioAdd
+                onSave={handleSaveAdd}
+                onCancel={handleClosePanel}
+              />
+            )}
 
-      {view === 'edit' && (
-        <UsuarioEdit
-          usuario={selectedUsuario}
-          onSave={handleSaveEdit}
-          onCancel={() => { setView('list'); setSelectedUsuario(null); }}
-        />
-      )}
+            {panelMode === 'edit' && selectedUsuario && (
+              <UsuarioEdit
+                usuario={selectedUsuario}
+                isAdmin={isAdmin}
+                onSave={handleSaveEdit}
+                onDelete={handleDelete}
+                onRestore={handleRestore}
+                onCancel={handleClosePanel}
+              />
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -1,15 +1,15 @@
 import React from 'react';
 
-export default function RoleList({ roles, isAdmin, onAddNew, onEdit, onDelete, onRestore }) {
+export default function RoleList({ roles, isAdmin, selectedRoleId, onAddNew, onSelectRole, onDelete, onRestore }) {
   return (
     <div className="glass-panel" style={{ padding: '24px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <div>
           <h3 style={{ fontSize: '18px', color: 'var(--text-primary)' }}>Listado de Roles y Permisos</h3>
-          <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Total registrados: {roles.length}</p>
+          <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Haz clic en un rol para editarlo en el panel lateral ({roles.length})</p>
         </div>
         <button onClick={onAddNew} className="btn btn-primary">
-          + Nuevo Rol
+          + Añadir
         </button>
       </div>
 
@@ -33,10 +33,18 @@ export default function RoleList({ roles, isAdmin, onAddNew, onEdit, onDelete, o
           ) : (
             roles.map(role => {
               const isDeleted = role.eliminado;
+              const isSelected = selectedRoleId === role.id;
               return (
                 <tr
                   key={role.id}
-                  style={isDeleted ? { opacity: 0.5, background: 'rgba(239, 68, 68, 0.08)' } : {}}
+                  onClick={() => onSelectRole(role)}
+                  style={{
+                    cursor: 'pointer',
+                    opacity: isDeleted ? 0.55 : 1,
+                    background: isSelected
+                      ? 'rgba(0, 198, 255, 0.15)'
+                      : isDeleted ? 'rgba(239, 68, 68, 0.08)' : 'transparent'
+                  }}
                 >
                   <td><span style={{ fontWeight: 700, color: isDeleted ? '#f87171' : 'var(--accent-cyan)' }}>#{role.id}</span></td>
                   <td>
@@ -53,22 +61,20 @@ export default function RoleList({ roles, isAdmin, onAddNew, onEdit, onDelete, o
                     )}
                   </td>
                   <td>
-                    <div style={{ display: 'flex', gap: '8px' }}>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <button onClick={(e) => { e.stopPropagation(); onSelectRole(role); }} className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '11px' }}>
+                        ✏️ Editar
+                      </button>
                       {isDeleted ? (
                         isAdmin && (
-                          <button onClick={() => onRestore(role.id)} className="btn btn-primary" style={{ padding: '6px 10px', fontSize: '12px' }}>
-                            🔄 Restaurar
+                          <button onClick={(e) => { e.stopPropagation(); onRestore(role.id); }} className="btn btn-primary" style={{ padding: '4px 8px', fontSize: '11px' }}>
+                            🔄
                           </button>
                         )
                       ) : (
-                        <>
-                          <button onClick={() => onEdit(role)} className="btn btn-secondary" style={{ padding: '6px 10px', fontSize: '12px' }}>
-                            ✏️ Editar
-                          </button>
-                          <button onClick={() => onDelete(role.id)} className="btn btn-danger" style={{ padding: '6px 10px', fontSize: '12px' }}>
-                            🗑️ Eliminar
-                          </button>
-                        </>
+                        <button onClick={(e) => { e.stopPropagation(); onDelete(role.id); }} className="btn btn-danger" style={{ padding: '4px 8px', fontSize: '11px' }}>
+                          🗑️
+                        </button>
                       )}
                     </div>
                   </td>

@@ -8,7 +8,8 @@ export default function CategoriaClientesPage({ userSession }) {
   const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [view, setView] = useState('list'); // 'list' | 'add' | 'edit'
+  
+  const [panelMode, setPanelMode] = useState('closed'); // 'closed' | 'add' | 'edit'
   const [selectedCategoria, setSelectedCategoria] = useState(null);
 
   const isAdmin = userSession?.usuario?.roles?.some(r => r.nombre === 'ADMINISTRADOR');
@@ -19,6 +20,11 @@ export default function CategoriaClientesPage({ userSession }) {
     try {
       const data = await fetchCategoriasCliente(isAdmin);
       setCategorias(data);
+
+      if (selectedCategoria) {
+        const updated = data.find(c => c.id === selectedCategoria.id);
+        if (updated) setSelectedCategoria(updated);
+      }
     } catch (err) {
       setError(err.message || 'Error al obtener categorías de cliente');
     } finally {
@@ -30,17 +36,35 @@ export default function CategoriaClientesPage({ userSession }) {
     loadData();
   }, [isAdmin]);
 
+  const handleSelectForEdit = (categoria) => {
+    setSelectedCategoria(categoria);
+    setPanelMode('edit');
+  };
+
+  const handleStartAdd = () => {
+    setSelectedCategoria(null);
+    setPanelMode('add');
+  };
+
+  const handleClosePanel = () => {
+    setPanelMode('closed');
+    setSelectedCategoria(null);
+  };
+
   const handleSaveAdd = async (formData) => {
-    await createCategoriaCliente(formData);
+    const nueva = await createCategoriaCliente(formData);
     await loadData();
-    setView('list');
+    if (nueva && nueva.id) {
+      setSelectedCategoria(nueva);
+      setPanelMode('edit');
+    } else {
+      setPanelMode('closed');
+    }
   };
 
   const handleSaveEdit = async (id, formData) => {
     await updateCategoriaCliente(id, formData);
     await loadData();
-    setView('list');
-    setSelectedCategoria(null);
   };
 
   const handleDelete = async (id) => {
@@ -63,7 +87,7 @@ export default function CategoriaClientesPage({ userSession }) {
     }
   };
 
-  if (loading) {
+  if (loading && categorias.length === 0) {
     return (
       <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
         ⏳ Cargando categorías de cliente desde PostgreSQL...
@@ -79,31 +103,48 @@ export default function CategoriaClientesPage({ userSession }) {
         </div>
       )}
 
-      {view === 'list' && (
-        <CategoriaClienteList
-          categorias={categorias}
-          isAdmin={isAdmin}
-          onAddNew={() => setView('add')}
-          onEdit={(cat) => { setSelectedCategoria(cat); setView('edit'); }}
-          onDelete={handleDelete}
-          onRestore={handleRestore}
-        />
-      )}
+      <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <CategoriaClienteList
+            categorias={categorias}
+            isAdmin={isAdmin}
+            selectedCategoriaId={selectedCategoria?.id}
+            onAddNew={handleStartAdd}
+            onSelectCategoria={handleSelectForEdit}
+            onDelete={handleDelete}
+            onRestore={handleRestore}
+          />
+        </div>
 
-      {view === 'add' && (
-        <CategoriaClienteAdd
-          onSave={handleSaveAdd}
-          onCancel={() => setView('list')}
-        />
-      )}
+        {panelMode !== 'closed' && (
+          <div style={{
+            width: '440px',
+            flexShrink: 0,
+            position: 'sticky',
+            top: '20px',
+            maxHeight: 'calc(100vh - 120px)',
+            overflowY: 'auto'
+          }}>
+            {panelMode === 'add' && (
+              <CategoriaClienteAdd
+                onSave={handleSaveAdd}
+                onCancel={handleClosePanel}
+              />
+            )}
 
-      {view === 'edit' && (
-        <CategoriaClienteEdit
-          categoria={selectedCategoria}
-          onSave={handleSaveEdit}
-          onCancel={() => { setView('list'); setSelectedCategoria(null); }}
-        />
-      )}
+            {panelMode === 'edit' && selectedCategoria && (
+              <CategoriaClienteEdit
+                categoria={selectedCategoria}
+                isAdmin={isAdmin}
+                onSave={handleSaveEdit}
+                onDelete={handleDelete}
+                onRestore={handleRestore}
+                onCancel={handleClosePanel}
+              />
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

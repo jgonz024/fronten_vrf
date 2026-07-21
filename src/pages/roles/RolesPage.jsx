@@ -8,7 +8,8 @@ export default function RolesPage({ userSession }) {
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [view, setView] = useState('list'); // 'list' | 'add' | 'edit'
+  
+  const [panelMode, setPanelMode] = useState('closed'); // 'closed' | 'add' | 'edit'
   const [selectedRole, setSelectedRole] = useState(null);
 
   const isAdmin = userSession?.usuario?.roles?.some(r => r.nombre === 'ADMINISTRADOR');
@@ -19,6 +20,11 @@ export default function RolesPage({ userSession }) {
     try {
       const data = await fetchRoles(isAdmin);
       setRoles(data);
+
+      if (selectedRole) {
+        const updated = data.find(r => r.id === selectedRole.id);
+        if (updated) setSelectedRole(updated);
+      }
     } catch (err) {
       setError(err.message || 'Error al obtener roles');
     } finally {
@@ -30,17 +36,35 @@ export default function RolesPage({ userSession }) {
     loadData();
   }, [isAdmin]);
 
+  const handleSelectForEdit = (role) => {
+    setSelectedRole(role);
+    setPanelMode('edit');
+  };
+
+  const handleStartAdd = () => {
+    setSelectedRole(null);
+    setPanelMode('add');
+  };
+
+  const handleClosePanel = () => {
+    setPanelMode('closed');
+    setSelectedRole(null);
+  };
+
   const handleSaveAdd = async (formData) => {
-    await createRol(formData);
+    const nuevo = await createRol(formData);
     await loadData();
-    setView('list');
+    if (nuevo && nuevo.id) {
+      setSelectedRole(nuevo);
+      setPanelMode('edit');
+    } else {
+      setPanelMode('closed');
+    }
   };
 
   const handleSaveEdit = async (id, formData) => {
     await updateRol(id, formData);
     await loadData();
-    setView('list');
-    setSelectedRole(null);
   };
 
   const handleDelete = async (id) => {
@@ -63,7 +87,7 @@ export default function RolesPage({ userSession }) {
     }
   };
 
-  if (loading) {
+  if (loading && roles.length === 0) {
     return (
       <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
         ⏳ Cargando roles desde PostgreSQL...
@@ -79,31 +103,48 @@ export default function RolesPage({ userSession }) {
         </div>
       )}
 
-      {view === 'list' && (
-        <RoleList
-          roles={roles}
-          isAdmin={isAdmin}
-          onAddNew={() => setView('add')}
-          onEdit={(role) => { setSelectedRole(role); setView('edit'); }}
-          onDelete={handleDelete}
-          onRestore={handleRestore}
-        />
-      )}
+      <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <RoleList
+            roles={roles}
+            isAdmin={isAdmin}
+            selectedRoleId={selectedRole?.id}
+            onAddNew={handleStartAdd}
+            onSelectRole={handleSelectForEdit}
+            onDelete={handleDelete}
+            onRestore={handleRestore}
+          />
+        </div>
 
-      {view === 'add' && (
-        <RoleAdd
-          onSave={handleSaveAdd}
-          onCancel={() => setView('list')}
-        />
-      )}
+        {panelMode !== 'closed' && (
+          <div style={{
+            width: '440px',
+            flexShrink: 0,
+            position: 'sticky',
+            top: '20px',
+            maxHeight: 'calc(100vh - 120px)',
+            overflowY: 'auto'
+          }}>
+            {panelMode === 'add' && (
+              <RoleAdd
+                onSave={handleSaveAdd}
+                onCancel={handleClosePanel}
+              />
+            )}
 
-      {view === 'edit' && (
-        <RoleEdit
-          role={selectedRole}
-          onSave={handleSaveEdit}
-          onCancel={() => { setView('list'); setSelectedRole(null); }}
-        />
-      )}
+            {panelMode === 'edit' && selectedRole && (
+              <RoleEdit
+                role={selectedRole}
+                isAdmin={isAdmin}
+                onSave={handleSaveEdit}
+                onDelete={handleDelete}
+                onRestore={handleRestore}
+                onCancel={handleClosePanel}
+              />
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

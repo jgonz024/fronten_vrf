@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export default function ClienteList({ clientes, tipos, categorias, isAdmin, onAddNew, onEdit, onDelete, onRestore }) {
+export default function ClienteList({ clientes, tipos, categorias, isAdmin, selectedClienteId, onAddNew, onSelectCliente, onDelete, onRestore }) {
   const [displayMode, setDisplayMode] = useState('cards'); // 'cards' | 'list'
   
   // Filtros acumulables
@@ -134,7 +134,7 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, onAd
             </div>
 
             <button onClick={onAddNew} className="btn btn-primary">
-              + Nuevo Cliente
+              + Añadir
             </button>
           </div>
         </div>
@@ -279,7 +279,7 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, onAd
               </div>
             </div>
           ) : (
-            /* ESTADO 2: Categoría seleccionada -> Mostrar Tarjetas de Clientes de esa Categoría */
+            /* ESTADO 2: Categoría seleccionada -> Mostrar Tarjetas de Clientes */
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               {/* Barra Informativa de la Categoría Activa */}
               <div style={{
@@ -298,7 +298,7 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, onAd
                       Categoría: {activeCategoria ? activeCategoria.nombre : 'Seleccionada'}
                     </h4>
                     <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-                      Mostrando {filteredClientes.length} clientes pertenecientes a esta marca
+                      Mostrando {filteredClientes.length} clientes. Haz clic en una tarjeta para editar en el panel derecho.
                     </div>
                   </div>
                 </div>
@@ -308,11 +308,11 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, onAd
                   className="btn btn-secondary"
                   style={{ padding: '6px 12px', fontSize: '12px' }}
                 >
-                  ← Volver a Ver Todas las Categorías
+                  ← Ver Todas las Categorías
                 </button>
               </div>
 
-              {/* Grid de Tarjetas de Clientes de la Categoría (La tarjeta completa es el botón Editar) */}
+              {/* Grid de Tarjetas de Clientes (Selección interactiva con panel derecho) */}
               {filteredClientes.length === 0 ? (
                 <div className="glass-panel" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
                   No hay clientes registrados en esta categoría que coincidan con los filtros aplicados.
@@ -320,19 +320,16 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, onAd
               ) : (
                 <div style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
                   gap: '16px'
                 }}>
                   {filteredClientes.map(item => {
                     const isDeleted = item.eliminado;
+                    const isSelected = selectedClienteId === item.id;
                     return (
                       <div
                         key={item.id}
-                        onClick={() => {
-                          if (!isDeleted) {
-                            onEdit(item);
-                          }
-                        }}
+                        onClick={() => onSelectCliente(item)}
                         className="glass-panel"
                         style={{
                           padding: '18px',
@@ -340,25 +337,16 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, onAd
                           flexDirection: 'column',
                           justifyContent: 'space-between',
                           gap: '14px',
-                          cursor: isDeleted ? 'default' : 'pointer',
+                          cursor: 'pointer',
                           opacity: isDeleted ? 0.55 : 1,
-                          background: isDeleted ? 'rgba(239, 68, 68, 0.06)' : 'rgba(15, 25, 50, 0.65)',
-                          border: isDeleted ? '1px dashed rgba(239, 68, 68, 0.4)' : '1px solid var(--border-color)',
-                          transition: 'transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease'
-                        }}
-                        onMouseEnter={e => {
-                          if (!isDeleted) {
-                            e.currentTarget.style.transform = 'translateY(-3px)';
-                            e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 198, 255, 0.2)';
-                            e.currentTarget.style.borderColor = 'rgba(0, 198, 255, 0.5)';
-                          }
-                        }}
-                        onMouseLeave={e => {
-                          if (!isDeleted) {
-                            e.currentTarget.style.transform = 'translateY(0)';
-                            e.currentTarget.style.boxShadow = 'none';
-                            e.currentTarget.style.borderColor = 'var(--border-color)';
-                          }
+                          background: isSelected
+                            ? 'linear-gradient(135deg, rgba(0, 198, 255, 0.18), rgba(0, 114, 255, 0.08))'
+                            : isDeleted ? 'rgba(239, 68, 68, 0.06)' : 'rgba(15, 25, 50, 0.65)',
+                          border: isSelected
+                            ? '2px solid var(--accent-cyan)'
+                            : isDeleted ? '1px dashed rgba(239, 68, 68, 0.4)' : '1px solid var(--border-color)',
+                          boxShadow: isSelected ? '0 0 16px rgba(0, 198, 255, 0.3)' : 'none',
+                          transition: 'all 0.2s ease'
                         }}
                       >
                         {/* Header Tarjeta Cliente */}
@@ -417,25 +405,11 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, onAd
                           )}
                         </div>
 
-                        {/* Indicador de Click para Editar */}
-                        {isDeleted ? (
-                          isAdmin && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onRestore(item.id);
-                              }}
-                              className="btn btn-primary"
-                              style={{ padding: '6px 12px', fontSize: '12px', width: '100%', justifyContent: 'center' }}
-                            >
-                              🔄 Restaurar Cliente
-                            </button>
-                          )
-                        ) : (
-                          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', fontSize: '11px', color: 'var(--accent-cyan)', fontWeight: 600, paddingTop: '4px' }}>
-                            <span>✏️ Haz clic en la tarjeta para editar</span>
-                          </div>
-                        )}
+                        {/* Indicador de Selección */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: isSelected ? 'var(--accent-cyan)' : 'var(--text-muted)', fontWeight: 600, paddingTop: '4px' }}>
+                          <span>{isSelected ? '▶ Seleccionado' : 'Clic para editar'}</span>
+                          <span>{isSelected ? '✏️' : '→'}</span>
+                        </div>
                       </div>
                     );
                   })}
@@ -473,10 +447,18 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, onAd
                 ) : (
                   currentListItems.map(item => {
                     const isDeleted = item.eliminado;
+                    const isSelected = selectedClienteId === item.id;
                     return (
                       <tr
                         key={item.id}
-                        style={isDeleted ? { opacity: 0.55, background: 'rgba(239, 68, 68, 0.08)' } : {}}
+                        onClick={() => onSelectCliente(item)}
+                        style={{
+                          cursor: 'pointer',
+                          opacity: isDeleted ? 0.55 : 1,
+                          background: isSelected
+                            ? 'rgba(0, 198, 255, 0.15)'
+                            : isDeleted ? 'rgba(239, 68, 68, 0.08)' : 'transparent'
+                        }}
                       >
                         <td><span style={{ fontWeight: 700, color: isDeleted ? '#f87171' : 'var(--accent-cyan)' }}>#{item.id}</span></td>
                         <td>
@@ -500,21 +482,19 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, onAd
                         <td style={{ fontSize: '12px', color: 'var(--accent-cyan)' }}>{item.email || '-'}</td>
                         <td>
                           <div style={{ display: 'flex', gap: '6px' }}>
+                            <button onClick={(e) => { e.stopPropagation(); onSelectCliente(item); }} className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '11px' }}>
+                              ✏️ Editar
+                            </button>
                             {isDeleted ? (
                               isAdmin && (
-                                <button onClick={() => onRestore(item.id)} className="btn btn-primary" style={{ padding: '4px 8px', fontSize: '11px' }}>
-                                  🔄 Restaurar
+                                <button onClick={(e) => { e.stopPropagation(); onRestore(item.id); }} className="btn btn-primary" style={{ padding: '4px 8px', fontSize: '11px' }}>
+                                  🔄
                                 </button>
                               )
                             ) : (
-                              <>
-                                <button onClick={() => onEdit(item)} className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '11px' }}>
-                                  ✏️ Editar
-                                </button>
-                                <button onClick={() => onDelete(item.id)} className="btn btn-danger" style={{ padding: '4px 8px', fontSize: '11px' }}>
-                                  🗑️ Eliminar
-                                </button>
-                              </>
+                              <button onClick={(e) => { e.stopPropagation(); onDelete(item.id); }} className="btn btn-danger" style={{ padding: '4px 8px', fontSize: '11px' }}>
+                                🗑️
+                              </button>
                             )}
                           </div>
                         </td>

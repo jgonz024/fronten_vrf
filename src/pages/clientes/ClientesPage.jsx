@@ -12,7 +12,9 @@ export default function ClientesPage({ userSession }) {
   const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [view, setView] = useState('list'); // 'list' | 'add' | 'edit'
+
+  // Panel lateral derecho ('closed' | 'add' | 'edit')
+  const [panelMode, setPanelMode] = useState('closed');
   const [selectedCliente, setSelectedCliente] = useState(null);
 
   const isAdmin = userSession?.usuario?.roles?.some(r => r.nombre === 'ADMINISTRADOR');
@@ -29,6 +31,14 @@ export default function ClientesPage({ userSession }) {
       setClientes(cData);
       setTipos(tData);
       setCategorias(catData);
+
+      // Si hay un cliente seleccionado en edición, actualizar sus datos con la información fresca
+      if (selectedCliente) {
+        const updated = cData.find(c => c.id === selectedCliente.id);
+        if (updated) {
+          setSelectedCliente(updated);
+        }
+      }
     } catch (err) {
       setError(err.message || 'Error al obtener datos de clientes');
     } finally {
@@ -40,17 +50,35 @@ export default function ClientesPage({ userSession }) {
     loadData();
   }, [isAdmin]);
 
+  const handleSelectForEdit = (cliente) => {
+    setSelectedCliente(cliente);
+    setPanelMode('edit');
+  };
+
+  const handleStartAdd = () => {
+    setSelectedCliente(null);
+    setPanelMode('add');
+  };
+
+  const handleClosePanel = () => {
+    setPanelMode('closed');
+    setSelectedCliente(null);
+  };
+
   const handleSaveAdd = async (formData) => {
-    await createCliente(formData);
+    const nuevo = await createCliente(formData);
     await loadData();
-    setView('list');
+    if (nuevo && nuevo.id) {
+      setSelectedCliente(nuevo);
+      setPanelMode('edit');
+    } else {
+      setPanelMode('closed');
+    }
   };
 
   const handleSaveEdit = async (id, formData) => {
     await updateCliente(id, formData);
     await loadData();
-    setView('list');
-    setSelectedCliente(null);
   };
 
   const handleDelete = async (id) => {
@@ -58,8 +86,6 @@ export default function ClientesPage({ userSession }) {
       try {
         await deleteCliente(id);
         await loadData();
-        setView('list');
-        setSelectedCliente(null);
       } catch (err) {
         alert(err.message || 'Error al eliminar');
       }
@@ -75,7 +101,7 @@ export default function ClientesPage({ userSession }) {
     }
   };
 
-  if (loading) {
+  if (loading && clientes.length === 0) {
     return (
       <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
         ⏳ Cargando directorio de clientes desde PostgreSQL...
@@ -91,34 +117,53 @@ export default function ClientesPage({ userSession }) {
         </div>
       )}
 
-      {view === 'list' && (
-        <ClienteList
-          clientes={clientes}
-          tipos={tipos}
-          categorias={categorias}
-          isAdmin={isAdmin}
-          onAddNew={() => setView('add')}
-          onEdit={(cli) => { setSelectedCliente(cli); setView('edit'); }}
-          onDelete={handleDelete}
-          onRestore={handleRestore}
-        />
-      )}
+      {/* Split Layout: Lista/Tarjetas a la Izquierda + Panel Lateral de Creación/Edición a la Derecha */}
+      <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
+        {/* LADO IZQUIERDO: Directorio y Controles */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <ClienteList
+            clientes={clientes}
+            tipos={tipos}
+            categorias={categorias}
+            isAdmin={isAdmin}
+            selectedClienteId={selectedCliente?.id}
+            onAddNew={handleStartAdd}
+            onSelectCliente={handleSelectForEdit}
+            onDelete={handleDelete}
+            onRestore={handleRestore}
+          />
+        </div>
 
-      {view === 'add' && (
-        <ClienteAdd
-          onSave={handleSaveAdd}
-          onCancel={() => setView('list')}
-        />
-      )}
+        {/* LADO DERECHO: Panel Lateral (Side Drawer) para Agregar/Editar */}
+        {panelMode !== 'closed' && (
+          <div style={{
+            width: '450px',
+            flexShrink: 0,
+            position: 'sticky',
+            top: '20px',
+            maxHeight: 'calc(100vh - 120px)',
+            overflowY: 'auto'
+          }}>
+            {panelMode === 'add' && (
+              <ClienteAdd
+                onSave={handleSaveAdd}
+                onCancel={handleClosePanel}
+              />
+            )}
 
-      {view === 'edit' && (
-        <ClienteEdit
-          cliente={selectedCliente}
-          onSave={handleSaveEdit}
-          onDelete={handleDelete}
-          onCancel={() => { setView('list'); setSelectedCliente(null); }}
-        />
-      )}
+            {panelMode === 'edit' && selectedCliente && (
+              <ClienteEdit
+                cliente={selectedCliente}
+                isAdmin={isAdmin}
+                onSave={handleSaveEdit}
+                onDelete={handleDelete}
+                onRestore={handleRestore}
+                onCancel={handleClosePanel}
+              />
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
