@@ -36,7 +36,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
         <div>
           <h2 style={{ fontSize: '18px', color: '#ffffff', lineHeight: 1.1 }}>VRF Systems</h2>
           <span style={{ fontSize: '11px', color: 'var(--accent-cyan)', letterSpacing: '0.05em', fontWeight: 600 }}>
-            HVAC MANAGEMENT
+            SUPPORT MANAGEMENT
           </span>
         </div>
       </div>
