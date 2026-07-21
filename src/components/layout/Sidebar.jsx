@@ -5,6 +5,9 @@ export default function Sidebar({ activeTab, setActiveTab }) {
   const menuItems = [
     { id: 'usuarios', label: 'Usuarios', icon: '👤', subtitle: 'Cuentas, perfiles y roles' },
     { id: 'roles', label: 'Roles', icon: '🔑', subtitle: 'Definición de permisos' },
+    { id: 'clientes', label: 'Clientes', icon: '🏢', subtitle: 'Directorio general de clientes' },
+    { id: 'tipo_cliente', label: 'Tipos de Cliente', icon: '🏷️', subtitle: 'Industrial, Particular' },
+    { id: 'categoria_cliente', label: 'Categorías de Cliente', icon: '⭐', subtitle: 'Hisense, LG, Samsung...' },
   ];
 
   return (
@@ -15,31 +18,43 @@ export default function Sidebar({ activeTab, setActiveTab }) {
       padding: '20px 16px',
       display: 'flex',
       flexDirection: 'column',
-      gap: '24px'
+      gap: '20px',
+      overflowY: 'auto'
     }}>
-      {/* Brand Header Integrado Sin Fondo Blanco */}
+      {/* Brand Header Integrado */}
       <div style={{
-        background: 'rgba(15, 25, 50, 0.5)',
+        background: 'rgba(15, 25, 50, 0.7)',
         borderRadius: 'var(--radius-sm)',
-        border: '1px solid rgba(0, 198, 255, 0.15)',
-        padding: '16px 12px',
+        border: '1px solid rgba(0, 198, 255, 0.2)',
+        padding: '14px 12px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: '12px'
+        gap: '10px',
+        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.4)'
       }}>
-        {/* Logo Transparente Directo sobre Fondo Oscuro */}
-        <img
-          src={logoImg}
-          alt="VRF SYSTEMS®"
-          style={{
-            width: '100%',
-            height: 'auto',
-            maxHeight: '56px',
-            objectFit: 'contain',
-            filter: 'drop-shadow(0 0 1px rgba(255, 255, 255, 0.7)) drop-shadow(0 4px 12px rgba(0, 198, 255, 0.25))'
-          }}
-        />
+        {/* Badge Blanco para Logo VRF SYSTEMS® */}
+        <div style={{
+          background: 'linear-gradient(135deg, #ffffff, #f0f6ff)',
+          borderRadius: '10px',
+          padding: '10px 14px',
+          width: '100%',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          boxShadow: '0 4px 14px rgba(0, 0, 0, 0.25)'
+        }}>
+          <img
+            src={logoImg}
+            alt="VRF SYSTEMS®"
+            style={{
+              width: '100%',
+              height: 'auto',
+              maxHeight: '46px',
+              objectFit: 'contain'
+            }}
+          />
+        </div>
 
         {/* Subtítulo Estilizado en Cyan Neón */}
         <div style={{
@@ -56,7 +71,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
       </div>
 
       {/* Navigation */}
-      <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <nav style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700, padding: '0 8px 4px 8px' }}>
           Configuración y Entidades
         </div>
@@ -69,8 +84,8 @@ export default function Sidebar({ activeTab, setActiveTab }) {
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '12px',
-                padding: '12px 14px',
+                gap: '10px',
+                padding: '10px 12px',
                 borderRadius: 'var(--radius-sm)',
                 background: isActive ? 'linear-gradient(90deg, rgba(0, 198, 255, 0.15), rgba(0, 114, 255, 0.05))' : 'transparent',
                 border: isActive ? '1px solid rgba(0, 198, 255, 0.3)' : '1px solid transparent',
@@ -80,10 +95,10 @@ export default function Sidebar({ activeTab, setActiveTab }) {
                 transition: 'all 0.2s ease'
               }}
             >
-              <span style={{ fontSize: '18px' }}>{item.icon}</span>
+              <span style={{ fontSize: '16px' }}>{item.icon}</span>
               <div>
-                <div style={{ fontWeight: isActive ? 600 : 500, fontSize: '14px' }}>{item.label}</div>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{item.subtitle}</div>
+                <div style={{ fontWeight: isActive ? 600 : 500, fontSize: '13px' }}>{item.label}</div>
+                <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{item.subtitle}</div>
               </div>
             </button>
           );

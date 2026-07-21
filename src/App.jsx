@@ -5,6 +5,9 @@ import CambiarPasswordModal from './pages/auth/CambiarPasswordModal';
 import PerfilModal from './pages/auth/PerfilModal';
 import UsuariosPage from './pages/usuarios/UsuariosPage';
 import RolesPage from './pages/roles/RolesPage';
+import ClientesPage from './pages/clientes/ClientesPage';
+import TipoClientesPage from './pages/tipo_cliente/TipoClientesPage';
+import CategoriaClientesPage from './pages/categoria_cliente/CategoriaClientesPage';
 
 const SESSION_KEY = import.meta.env.VITE_SESSION_STORAGE_KEY;
 
@@ -84,6 +87,9 @@ export default function App() {
       >
         {activeTab === 'usuarios' && <UsuariosPage />}
         {activeTab === 'roles' && <RolesPage />}
+        {activeTab === 'clientes' && <ClientesPage />}
+        {activeTab === 'tipo_cliente' && <TipoClientesPage />}
+        {activeTab === 'categoria_cliente' && <CategoriaClientesPage />}
       </MainLayout>
     </>
   );
