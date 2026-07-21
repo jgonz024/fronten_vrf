@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { loginApi, solicitarRecuperacionApi } from '../../api/auth.api';
-import logoImg from '../../assets/images/logo.png';
+import logoSvg from '../../assets/images/logo.svg';
 
 export default function LoginPage({ onLoginSuccess }) {
   const [mode, setMode] = useState('login'); // 'login' | 'recovery'
@@ -68,19 +68,18 @@ export default function LoginPage({ onLoginSuccess }) {
             <div style={{
               background: '#ffffff',
               borderRadius: '10px',
-              padding: '12px 16px',
+              padding: '10px 16px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               width: '100%'
             }}>
               <img
-                src={logoImg}
-                alt="VRF Systems"
+                src={logoSvg}
+                alt="VRF SYSTEMS"
                 style={{
                   width: '100%',
-                  height: 'auto',
-                  maxHeight: '100px',
+                  height: '56px',
                   objectFit: 'contain'
                 }}
               />

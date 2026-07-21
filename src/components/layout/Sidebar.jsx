@@ -1,5 +1,5 @@
 import React from 'react';
-import logoImg from '../../assets/images/logo.png';
+import logoSvg from '../../assets/images/logo.svg';
 
 export default function Sidebar({ activeTab, setActiveTab }) {
   const menuItems = [
@@ -21,32 +21,31 @@ export default function Sidebar({ activeTab, setActiveTab }) {
       <div style={{
         background: 'rgba(15, 25, 50, 0.7)',
         borderRadius: 'var(--radius-sm)',
-        border: '1px solid rgba(0, 198, 255, 0.15)',
-        padding: '12px',
+        border: '1px solid rgba(0, 198, 255, 0.2)',
+        padding: '12px 10px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: '10px',
-        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)'
+        gap: '8px',
+        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.4)'
       }}>
-        {/* Banner Blanco del Logo Completo */}
+        {/* Banner Blanco del Logo Vectorial SVG */}
         <div style={{
           background: '#ffffff',
-          borderRadius: '10px',
-          padding: '10px 14px',
+          borderRadius: '8px',
+          padding: '8px 12px',
           width: '100%',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.2)'
+          boxShadow: '0 2px 12px rgba(0, 0, 0, 0.25)'
         }}>
           <img
-            src={logoImg}
-            alt="VRF Systems"
+            src={logoSvg}
+            alt="VRF SYSTEMS"
             style={{
               width: '100%',
-              height: 'auto',
-              maxHeight: '90px',
+              height: '46px',
               objectFit: 'contain'
             }}
           />
