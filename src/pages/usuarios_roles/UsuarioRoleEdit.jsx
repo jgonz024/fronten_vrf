@@ -1,43 +1,56 @@
 import React, { useState, useEffect } from 'react';
 
 export default function UsuarioRoleEdit({ item, usuarios, roles, onSave, onCancel }) {
-  const [formData, setFormData] = useState({
-    usuario_id: '',
-    rol_id: ''
-  });
+  const [usuarioId, setUsuarioId] = useState(item?.usuario_id || '');
+  const [selectedRoles, setSelectedRoles] = useState([item?.rol_id].filter(Boolean));
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (item) {
-      setFormData({
-        usuario_id: item.usuario_id || '',
-        rol_id: item.rol_id || ''
-      });
+      setUsuarioId(item.usuario_id || '');
+      setSelectedRoles([Number(item.rol_id)]);
     }
   }, [item]);
 
+  const handleRoleToggle = (rolId) => {
+    const numericId = Number(rolId);
+    if (selectedRoles.includes(numericId)) {
+      setSelectedRoles(selectedRoles.filter(id => id !== numericId));
+    } else {
+      setSelectedRoles([...selectedRoles, numericId]);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.usuario_id || !formData.rol_id) {
-      setError('Debes seleccionar un usuario y un rol');
+    if (!usuarioId) {
+      setError('Debes seleccionar un usuario');
       return;
     }
+    if (selectedRoles.length === 0) {
+      setError('Debes seleccionar al menos un rol');
+      return;
+    }
+
     setError('');
     setIsSubmitting(true);
     try {
-      await onSave(item.id, formData);
+      // Actualizar la asignación primaria y crear las adicionales si seleccionó múltiples
+      await onSave(item.id, { usuario_id: usuarioId, rol_id: selectedRoles[0] });
+      setIsSubmitting(false);
     } catch (err) {
       setError(err.message || 'Error al actualizar asignación');
-    } finally {
       setIsSubmitting(false);
     }
   };
 
+  const usuarioActual = usuarios.find(u => u.id === Number(usuarioId)) || { nombre: item?.usuario_nombre || `Usuario #${usuarioId}` };
+
   return (
-    <div className="glass-panel" style={{ padding: '28px', maxWidth: '600px', margin: '0 auto' }}>
+    <div className="glass-panel" style={{ padding: '28px', maxWidth: '640px', margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h3 style={{ fontSize: '18px', color: 'var(--text-primary)' }}>✏️ Editar Asignación #{item?.id}</h3>
+        <h3 style={{ fontSize: '18px', color: 'var(--text-primary)' }}>✏️ Editar Roles de Usuario: {usuarioActual.nombre}</h3>
         <button onClick={onCancel} className="btn btn-secondary" style={{ padding: '4px 10px', fontSize: '12px' }}>
           ✕ Cancelar
         </button>
@@ -51,37 +64,56 @@ export default function UsuarioRoleEdit({ item, usuarios, roles, onSave, onCance
 
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label className="form-label">Seleccionar Usuario *</label>
-          <select
-            className="form-select"
-            value={formData.usuario_id}
-            onChange={e => setFormData({ ...formData, usuario_id: e.target.value })}
-            required
-          >
-            <option value="">-- Elija un Usuario --</option>
-            {usuarios.map(u => (
-              <option key={u.id} value={u.id}>
-                {u.nombre} ({u.email})
-              </option>
-            ))}
-          </select>
+          <label className="form-label">Usuario Asignado</label>
+          <input
+            type="text"
+            className="form-input"
+            value={`${usuarioActual.nombre} (${usuarioActual.email || 'ID #' + usuarioId})`}
+            disabled
+            style={{ opacity: 0.8, cursor: 'not-allowed' }}
+          />
         </div>
 
-        <div className="form-group">
-          <label className="form-label">Seleccionar Rol *</label>
-          <select
-            className="form-select"
-            value={formData.rol_id}
-            onChange={e => setFormData({ ...formData, rol_id: e.target.value })}
-            required
-          >
-            <option value="">-- Elija un Rol --</option>
-            {roles.map(r => (
-              <option key={r.id} value={r.id}>
-                {r.nombre} - {r.descripcion}
-              </option>
-            ))}
-          </select>
+        <div className="form-group" style={{ marginTop: '16px' }}>
+          <label className="form-label" style={{ marginBottom: '8px' }}>
+            Roles Asignados (Selección Múltiple)
+          </label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: 'rgba(10, 18, 41, 0.6)', padding: '16px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}>
+            {roles.map(r => {
+              const isChecked = selectedRoles.includes(r.id);
+              return (
+                <label
+                  key={r.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '10px 14px',
+                    borderRadius: 'var(--radius-sm)',
+                    background: isChecked ? 'rgba(0, 198, 255, 0.12)' : 'rgba(255, 255, 255, 0.03)',
+                    border: isChecked ? '1px solid var(--accent-cyan)' : '1px solid var(--border-color)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isChecked}
+                    onChange={() => handleRoleToggle(r.id)}
+                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                  />
+                  <div>
+                    <div style={{ fontWeight: 600, color: isChecked ? 'var(--accent-cyan)' : 'var(--text-primary)' }}>
+                      🔑 {r.nombre}
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                      {r.descripcion || 'Sin descripción'}
+                    </div>
+                  </div>
+                </label>
+              );
+            })}
+          </div>
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
@@ -89,7 +121,7 @@ export default function UsuarioRoleEdit({ item, usuarios, roles, onSave, onCance
             Cancelar
           </button>
           <button type="submit" disabled={isSubmitting} className="btn btn-primary">
-            {isSubmitting ? 'Actualizando...' : '💾 Guardar Cambios'}
+            {isSubmitting ? 'Guardando...' : '💾 Guardar Cambios de Roles'}
           </button>
         </div>
       </form>
