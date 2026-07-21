@@ -1,5 +1,6 @@
 import React from 'react';
 import logoImg from '../../assets/images/logo.png';
+import iconImg from '../../assets/images/icon.png';
 
 export default function Sidebar({ activeTab, setActiveTab }) {
   const menuItems = [
@@ -17,36 +18,46 @@ export default function Sidebar({ activeTab, setActiveTab }) {
       flexDirection: 'column',
       gap: '24px'
     }}>
-      {/* Brand Header Integrado */}
+      {/* Brand Header Integrado con Icono Circular de Sello Oficial */}
       <div style={{
         background: 'rgba(15, 25, 50, 0.7)',
         borderRadius: 'var(--radius-sm)',
         border: '1px solid rgba(0, 198, 255, 0.2)',
-        padding: '12px',
+        padding: '14px 12px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: '10px',
+        gap: '12px',
         boxShadow: '0 4px 16px rgba(0, 0, 0, 0.4)'
       }}>
-        {/* Badge Blanco Ajustado para el PNG Transparente sin fondo */}
+        {/* Fila del Icono de Sello Oficial y Logo */}
         <div style={{
           background: 'linear-gradient(135deg, #ffffff, #f0f6ff)',
-          borderRadius: '10px',
-          padding: '12px 14px',
+          borderRadius: '12px',
+          padding: '10px 14px',
           width: '100%',
           display: 'flex',
-          justifyContent: 'center',
           alignItems: 'center',
+          gap: '10px',
           boxShadow: '0 4px 14px rgba(0, 0, 0, 0.25)'
         }}>
           <img
-            src={logoImg}
-            alt="VRF SYSTEMS"
+            src={iconImg}
+            alt="VRF Seal Icon"
             style={{
-              width: '100%',
+              width: '42px',
+              height: '42px',
+              objectFit: 'contain',
+              flexShrink: 0
+            }}
+          />
+          <img
+            src={logoImg}
+            alt="VRF SYSTEMS®"
+            style={{
+              flex: 1,
               height: 'auto',
-              maxHeight: '52px',
+              maxHeight: '38px',
               objectFit: 'contain'
             }}
           />
