@@ -2,9 +2,8 @@ import React from 'react';
 
 export default function Sidebar({ activeTab, setActiveTab }) {
   const menuItems = [
-    { id: 'usuarios', label: 'Usuarios', icon: '👤', subtitle: 'Gestión de personal y accesos' },
-    { id: 'roles', label: 'Roles', icon: '🔑', subtitle: 'Definición de permisos y perfiles' },
-    { id: 'usuarios_roles', label: 'Asignación de Roles', icon: '🛡️', subtitle: 'Vínculo usuario - rol' },
+    { id: 'usuarios', label: 'Usuarios', icon: '👤', subtitle: 'Cuentas, perfiles y roles' },
+    { id: 'roles', label: 'Roles', icon: '🔑', subtitle: 'Definición de permisos' },
   ];
 
   return (
