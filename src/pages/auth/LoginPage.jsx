@@ -68,21 +68,20 @@ export default function LoginPage({ onLoginSuccess }) {
             <div style={{
               background: '#ffffff',
               borderRadius: '10px',
-              padding: '6px 8px',
+              padding: '12px 16px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: '100%',
-              overflow: 'hidden'
+              width: '100%'
             }}>
               <img
                 src={logoImg}
                 alt="VRF Systems"
                 style={{
                   width: '100%',
-                  height: '76px',
-                  objectFit: 'contain',
-                  transform: 'scale(1.2)'
+                  height: 'auto',
+                  maxHeight: '100px',
+                  objectFit: 'contain'
                 }}
               />
             </div>

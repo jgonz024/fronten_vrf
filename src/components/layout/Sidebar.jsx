@@ -22,23 +22,22 @@ export default function Sidebar({ activeTab, setActiveTab }) {
         background: 'rgba(15, 25, 50, 0.7)',
         borderRadius: 'var(--radius-sm)',
         border: '1px solid rgba(0, 198, 255, 0.15)',
-        padding: '10px 10px',
+        padding: '12px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: '8px',
+        gap: '10px',
         boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)'
       }}>
-        {/* Logo Badge Prominente */}
+        {/* Banner Blanco del Logo Completo */}
         <div style={{
           background: '#ffffff',
-          borderRadius: '8px',
-          padding: '4px 4px',
+          borderRadius: '10px',
+          padding: '10px 14px',
           width: '100%',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          overflow: 'hidden',
           boxShadow: '0 2px 10px rgba(0, 0, 0, 0.2)'
         }}>
           <img
@@ -46,9 +45,9 @@ export default function Sidebar({ activeTab, setActiveTab }) {
             alt="VRF Systems"
             style={{
               width: '100%',
-              height: '64px',
-              objectFit: 'contain',
-              transform: 'scale(1.25)'
+              height: 'auto',
+              maxHeight: '90px',
+              objectFit: 'contain'
             }}
           />
         </div>
