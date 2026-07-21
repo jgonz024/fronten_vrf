@@ -437,9 +437,8 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, sele
               <thead>
                 <tr>
                   <th>ID</th>
-                  <th>NOMBRE Y TIPO DE CLIENTE</th>
-                  <th>MARCA / CATEGORÍA</th>
-                  <th>TIPO</th>
+                  <th>NOMBRE</th>
+                  <th>MARCA / CATEGORÍA / TIPO</th>
                   <th>CONTACTO</th>
                   <th>TELÉFONO</th>
                   <th>EMAIL</th>
@@ -449,7 +448,7 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, sele
               <tbody>
                 {currentListItems.length === 0 ? (
                   <tr>
-                    <td colSpan="8" style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>
+                    <td colSpan="7" style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>
                       No se encontraron clientes que coincidan con los filtros aplicados.
                     </td>
                   </tr>
@@ -485,14 +484,18 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, sele
                           </div>
                         </td>
                         <td>
-                          <span className="badge badge-active" style={{ fontSize: '11px' }}>
-                            🏷️ {item.categoria_cliente_nombre || 'General'}
-                          </span>
-                        </td>
-                        <td>
-                          <span className="badge badge-role" style={{ fontSize: '11px' }}>
-                            {item.tipo_cliente_nombre || 'Sin Tipo'}
-                          </span>
+                          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', alignItems: 'center' }}>
+                            {item.categoria_cliente_nombre && (
+                              <span className="badge badge-active" style={{ fontSize: '11px' }}>
+                                🏷️ {item.categoria_cliente_nombre}
+                              </span>
+                            )}
+                            {item.tipo_cliente_nombre && (
+                              <span className="badge badge-role" style={{ fontSize: '11px' }}>
+                                {item.tipo_cliente_nombre}
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{item.contacto || '-'}</td>
                         <td style={{ fontSize: '12px' }}>{item.telefono || '-'}</td>
