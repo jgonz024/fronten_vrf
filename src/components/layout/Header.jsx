@@ -1,6 +1,6 @@
 import React from 'react';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 export default function Header({ title, subtitle, userSession, onOpenProfile, onLogout }) {
   const usuario = userSession?.usuario || {};

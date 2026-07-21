@@ -3,8 +3,8 @@ import { loginApi, solicitarRecuperacionApi } from '../../api/auth.api';
 
 export default function LoginPage({ onLoginSuccess }) {
   const [mode, setMode] = useState('login'); // 'login' | 'recovery'
-  const [email, setEmail] = useState('admin@vrfsystems.cl');
-  const [password, setPassword] = useState('Vrf12345');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -121,10 +121,6 @@ export default function LoginPage({ onLoginSuccess }) {
             <button type="submit" disabled={isSubmitting} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '12px', marginTop: '12px' }}>
               {isSubmitting ? 'Iniciando sesión...' : '🔐 Ingresar al Sistema'}
             </button>
-
-            <div style={{ marginTop: '20px', padding: '12px', background: 'rgba(255, 255, 255, 0.04)', borderRadius: 'var(--radius-sm)', fontSize: '11px', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-              💡 <strong>Nota de Seguridad:</strong> La contraseña inicial por defecto para usuarios nuevos es <code>Vrf12345</code>. Se requerirá un cambio obligatorio al ingresar.
-            </div>
           </form>
         ) : (
           <form onSubmit={handleRecoverySubmit}>

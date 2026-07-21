@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { updateUsuario } from '../../api/usuarios.api';
 import { cambiarPasswordApi } from '../../api/auth.api';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 export default function PerfilModal({ userSession, onClose, onProfileUpdated }) {
   const usuario = userSession?.usuario || {};
@@ -40,24 +40,19 @@ export default function PerfilModal({ userSession, onClose, onProfileUpdated }) 
         body: formData
       });
       
-      if (res.ok) {
-        const json = await res.json();
-        if (json.success && json.url) {
-          setFotoUrl(json.url);
-          setSuccess('Imagen subida a /uploads/usuarios correctamente');
-          return;
-        }
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.message || 'Error al subir la imagen al servidor');
       }
-    } catch {
-      // Fallback local FileReader en caso de estar probando solo frontend
-    }
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setFotoUrl(reader.result);
-      setSuccess('Imagen seleccionada correctamente');
-    };
-    reader.readAsDataURL(file);
+      const json = await res.json();
+      if (json.success && json.url) {
+        setFotoUrl(json.url);
+        setSuccess('Fotografía guardada en servidor correctamente');
+      }
+    } catch (err) {
+      setError(err.message || 'Error al subir la fotografía');
+    }
   };
 
   const handleSaveDatos = async (e) => {

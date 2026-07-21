@@ -6,7 +6,7 @@ import PerfilModal from './pages/auth/PerfilModal';
 import UsuariosPage from './pages/usuarios/UsuariosPage';
 import RolesPage from './pages/roles/RolesPage';
 
-const SESSION_KEY = import.meta.env.VITE_SESSION_STORAGE_KEY || 'vrf_session';
+const SESSION_KEY = import.meta.env.VITE_SESSION_STORAGE_KEY;
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('usuarios');
