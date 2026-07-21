@@ -4,12 +4,11 @@ import { cambiarPasswordApi } from '../../api/auth.api';
 
 export default function PerfilModal({ userSession, onClose, onProfileUpdated }) {
   const usuario = userSession?.usuario || {};
-  const [activeTab, setActiveTab] = useState('datos'); // 'datos' | 'password'
+  const [activeTab, setActiveTab] = useState('datos');
 
-  // Formulario de datos personales
-  const [nombre, setNombre] = useState(usuario.nombre || '');
-  const [email, setEmail] = useState(usuario.email || '');
+  // Campos de perfil
   const [telefono, setTelefono] = useState(usuario.telefono || '');
+  const [fotoUrl, setFotoUrl] = useState(usuario.foto_url || '');
 
   // Formulario de contraseña
   const [currentPassword, setCurrentPassword] = useState('');
@@ -22,30 +21,64 @@ export default function PerfilModal({ userSession, onClose, onProfileUpdated }) 
 
   useEffect(() => {
     if (usuario) {
-      setNombre(usuario.nombre || '');
-      setEmail(usuario.email || '');
       setTelefono(usuario.telefono || '');
+      setFotoUrl(usuario.foto_url || '');
     }
   }, [usuario]);
 
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('http://localhost:3000/api/upload/usuario', {
+        method: 'POST',
+        body: formData
+      });
+      
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.url) {
+          setFotoUrl(json.url);
+          setSuccess('Imagen subida a /uploads/usuarios correctamente');
+          return;
+        }
+      }
+    } catch {
+      // Fallback local FileReader en caso de estar probando solo frontend
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFotoUrl(reader.result);
+      setSuccess('Imagen seleccionada correctamente');
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSaveDatos = async (e) => {
     e.preventDefault();
-    if (!nombre.trim() || !email.trim()) {
-      setError('El nombre y el correo electrónico son requeridos');
-      return;
-    }
     setError('');
     setSuccess('');
     setIsSubmitting(true);
+
     try {
+      // Se envían únicamente los campos editables (teléfono y foto_url), conservando nombre y email intactos
       const updatedUser = await updateUsuario(usuario.id, {
-        nombre,
-        email,
         telefono,
-        activo: usuario.activo ?? true
+        foto_url: fotoUrl
       });
+      
       setSuccess('Perfil actualizado con éxito');
-      onProfileUpdated({ ...usuario, ...updatedUser, nombre, email, telefono });
+      onProfileUpdated({
+        ...usuario,
+        ...updatedUser,
+        telefono,
+        foto_url: fotoUrl
+      });
     } catch (err) {
       setError(err.message || 'Error al actualizar perfil');
     } finally {
@@ -84,6 +117,8 @@ export default function PerfilModal({ userSession, onClose, onProfileUpdated }) 
     }
   };
 
+  const fullFotoUrl = fotoUrl && fotoUrl.startsWith('/') ? `http://localhost:3000${fotoUrl}` : fotoUrl;
+
   return (
     <div style={{
       position: 'fixed',
@@ -102,20 +137,38 @@ export default function PerfilModal({ userSession, onClose, onProfileUpdated }) 
       <div className="glass-panel" style={{ width: '100%', maxWidth: '540px', padding: '32px' }}>
         {/* Modal Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{
-              width: '42px',
-              height: '42px',
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, var(--accent-cyan), var(--accent-blue))',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '16px',
-              fontWeight: 700,
-              color: '#ffffff'
-            }}>
-              {(nombre || 'US').substring(0, 2).toUpperCase()}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <div style={{ position: 'relative' }}>
+              {fullFotoUrl ? (
+                <img
+                  src={fullFotoUrl}
+                  alt="Avatar"
+                  style={{
+                    width: '54px',
+                    height: '54px',
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    border: '2px solid var(--accent-cyan)',
+                    boxShadow: '0 0 12px rgba(0, 198, 255, 0.4)'
+                  }}
+                  onError={(e) => { e.target.style.display = 'none'; }}
+                />
+              ) : (
+                <div style={{
+                  width: '54px',
+                  height: '54px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, var(--accent-cyan), var(--accent-blue))',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '18px',
+                  fontWeight: 700,
+                  color: '#ffffff'
+                }}>
+                  {(usuario.nombre || 'US').substring(0, 2).toUpperCase()}
+                </div>
+              )}
             </div>
             <div>
               <h3 style={{ fontSize: '18px', color: '#ffffff' }}>Mi Perfil de Usuario</h3>
@@ -134,7 +187,7 @@ export default function PerfilModal({ userSession, onClose, onProfileUpdated }) 
             className={`btn ${activeTab === 'datos' ? 'btn-primary' : 'btn-secondary'}`}
             style={{ fontSize: '13px', padding: '6px 14px' }}
           >
-            👤 Datos Personales
+            👤 Datos y Fotografía
           </button>
           <button
             onClick={() => { setActiveTab('password'); setError(''); setSuccess(''); }}
@@ -157,33 +210,62 @@ export default function PerfilModal({ userSession, onClose, onProfileUpdated }) 
           </div>
         )}
 
-        {/* Tab 1: Datos Personales */}
+        {/* Tab 1: Datos y Fotografía */}
         {activeTab === 'datos' && (
           <form onSubmit={handleSaveDatos}>
+            {/* Foto de Perfil Upload */}
+            <div className="form-group" style={{ background: 'rgba(10, 18, 41, 0.5)', padding: '14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}>
+              <label className="form-label" style={{ marginBottom: '8px' }}>📷 Foto de Perfil (Guardada en /uploads/usuarios/)</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  style={{ display: 'none' }}
+                  id="profile-photo-input"
+                />
+                <label htmlFor="profile-photo-input" className="btn btn-secondary" style={{ cursor: 'pointer', fontSize: '12px' }}>
+                  📁 Seleccionar / Subir Imagen
+                </label>
+                {fotoUrl && (
+                  <span style={{ fontSize: '11px', color: 'var(--accent-cyan)', wordBreak: 'break-all' }}>
+                    {fotoUrl}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Nombre Bloqueado */}
             <div className="form-group">
-              <label className="form-label">Nombre Completo *</label>
+              <label className="form-label">
+                Nombre Completo <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(No editable)</span>
+              </label>
               <input
                 type="text"
                 className="form-input"
-                value={nombre}
-                onChange={e => setNombre(e.target.value)}
-                required
+                value={usuario.nombre || ''}
+                disabled
+                style={{ opacity: 0.7, cursor: 'not-allowed', background: 'rgba(255, 255, 255, 0.03)' }}
               />
             </div>
 
+            {/* Email Bloqueado */}
             <div className="form-group">
-              <label className="form-label">Correo Electrónico *</label>
+              <label className="form-label">
+                Correo Electrónico <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(No editable)</span>
+              </label>
               <input
                 type="email"
                 className="form-input"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                required
+                value={usuario.email || ''}
+                disabled
+                style={{ opacity: 0.7, cursor: 'not-allowed', background: 'rgba(255, 255, 255, 0.03)' }}
               />
             </div>
 
+            {/* Teléfono Editable */}
             <div className="form-group">
-              <label className="form-label">Teléfono de Contacto</label>
+              <label className="form-label">Teléfono de Contacto (Editable)</label>
               <input
                 type="text"
                 className="form-input"
@@ -193,8 +275,9 @@ export default function PerfilModal({ userSession, onClose, onProfileUpdated }) 
               />
             </div>
 
+            {/* Roles Dinámicos de las Tablas */}
             <div className="form-group">
-              <label className="form-label">Roles Asignados (Lectura)</label>
+              <label className="form-label">Roles Asignados (Desde Base de Datos)</label>
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '4px' }}>
                 {usuario.roles && usuario.roles.length > 0 ? (
                   usuario.roles.map(r => (
@@ -213,7 +296,7 @@ export default function PerfilModal({ userSession, onClose, onProfileUpdated }) 
                 Cancelar
               </button>
               <button type="submit" disabled={isSubmitting} className="btn btn-primary">
-                {isSubmitting ? 'Guardando...' : '💾 Guardar Datos'}
+                {isSubmitting ? 'Guardando...' : '💾 Guardar Foto y Datos'}
               </button>
             </div>
           </form>

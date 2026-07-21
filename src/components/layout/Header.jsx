@@ -1,8 +1,11 @@
 import React from 'react';
 
 export default function Header({ title, subtitle, userSession, onOpenProfile, onLogout }) {
-  const userName = userSession?.usuario?.nombre || 'Administrador VRF';
-  const roles = userSession?.usuario?.roles || [{ nombre: 'ADMINISTRADOR' }];
+  const usuario = userSession?.usuario || {};
+  const userName = usuario?.nombre || 'Administrador VRF';
+  const roles = usuario?.roles || [{ nombre: 'ADMINISTRADOR' }];
+  const fotoUrl = usuario?.foto_url;
+  const fullFotoUrl = fotoUrl && fotoUrl.startsWith('/') ? `http://localhost:3000${fotoUrl}` : fotoUrl;
 
   return (
     <header style={{
@@ -39,21 +42,37 @@ export default function Header({ title, subtitle, userSession, onOpenProfile, on
           className="btn-user-profile"
           title="Haz clic para editar tu perfil de usuario"
         >
-          <div style={{
-            width: '34px',
-            height: '34px',
-            borderRadius: '50%',
-            background: 'linear-gradient(135deg, var(--accent-cyan), var(--accent-blue))',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '13px',
-            fontWeight: 700,
-            color: '#ffffff',
-            boxShadow: '0 0 10px rgba(0, 198, 255, 0.3)'
-          }}>
-            {userName.substring(0, 2).toUpperCase()}
-          </div>
+          {fullFotoUrl ? (
+            <img
+              src={fullFotoUrl}
+              alt="Perfil"
+              style={{
+                width: '34px',
+                height: '34px',
+                borderRadius: '50%',
+                objectFit: 'cover',
+                border: '2px solid var(--accent-cyan)',
+                boxShadow: '0 0 10px rgba(0, 198, 255, 0.3)'
+              }}
+              onError={(e) => { e.target.style.display = 'none'; }}
+            />
+          ) : (
+            <div style={{
+              width: '34px',
+              height: '34px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, var(--accent-cyan), var(--accent-blue))',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '13px',
+              fontWeight: 700,
+              color: '#ffffff',
+              boxShadow: '0 0 10px rgba(0, 198, 255, 0.3)'
+            }}>
+              {userName.substring(0, 2).toUpperCase()}
+            </div>
+          )}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>{userName}</span>
