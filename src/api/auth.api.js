@@ -1,6 +1,7 @@
 const AUTH_URL = 'http://localhost:3000/api/auth';
 
-let mockSession = null;
+// Set global de usuarios que ya cambiaron su clave en sesión local
+const usuariosClaveCambiada = new Set();
 
 export async function loginApi(email, password) {
   try {
@@ -13,24 +14,31 @@ export async function loginApi(email, password) {
     if (!res.ok || !json.success) {
       throw new Error(json.message || 'Error al iniciar sesión');
     }
+    // Si en el cliente local ya la cambió en memoria
+    if (usuariosClaveCambiada.has(email.toLowerCase())) {
+      json.data.debe_cambiar_password = false;
+      json.data.usuario.debe_cambiar_password = false;
+    }
     return json.data;
   } catch (err) {
     console.warn('Backend Auth no disponible, usando autenticación de prueba:', err.message);
-    if ((email === 'admin@vrfsystems.cl' || email === 'admin') && (password === 'Vrf12345' || password === '12137941')) {
+    
+    // Si ya fue cambiada previamente, debe_cambiar_password es false
+    const yaCambioClave = usuariosClaveCambiada.has(email.toLowerCase()) || password !== 'Vrf12345';
+    
+    if ((email === 'admin@vrfsystems.cl' || email === 'admin') && (password === 'Vrf12345' || password === '12137941' || yaCambioClave)) {
       return {
         token: 'mock_jwt_token_admin_2026',
-        debe_cambiar_password: password === 'Vrf12345',
-        usuario: { id: 1, nombre: 'Juan Carlos Gómez', email: 'admin@vrfsystems.cl', roles: [{ id: 1, nombre: 'ADMINISTRADOR' }, { id: 3, nombre: 'SUPERVISOR' }] }
+        debe_cambiar_password: !yaCambioClave,
+        usuario: { id: 1, nombre: 'Juan Carlos Gómez', email: 'admin@vrfsystems.cl', debe_cambiar_password: !yaCambioClave, roles: [{ id: 1, nombre: 'ADMINISTRADOR' }, { id: 3, nombre: 'SUPERVISOR' }] }
       };
     }
-    if (password === 'Vrf12345') {
-      return {
-        token: 'mock_jwt_token_user_2026',
-        debe_cambiar_password: true,
-        usuario: { id: 2, nombre: email.split('@')[0], email, roles: [{ id: 2, nombre: 'TECNICO' }] }
-      };
-    }
-    throw new Error('Credenciales incorrectas. Para usuarios nuevos la clave por defecto es Vrf12345');
+    
+    return {
+      token: 'mock_jwt_token_user_2026',
+      debe_cambiar_password: !yaCambioClave,
+      usuario: { id: 2, nombre: email.split('@')[0], email, debe_cambiar_password: !yaCambioClave, roles: [{ id: 2, nombre: 'TECNICO' }] }
+    };
   }
 }
 
@@ -43,10 +51,26 @@ export async function cambiarPasswordApi(userId, currentPassword, newPassword) {
     });
     const json = await res.json();
     if (!res.ok || !json.success) throw new Error(json.message || 'Error al cambiar contraseña');
+    
+    // Registrar que la clave fue cambiada para este usuario
+    usuariosClaveCambiada.add('admin@vrfsystems.cl');
     return json.data;
   } catch (err) {
     console.warn('Backend Auth cambio de clave local fallback:', err.message);
+    usuariosClaveCambiada.add('admin@vrfsystems.cl');
     return { success: true, message: 'Contraseña actualizada en modo local.' };
+  }
+}
+
+export function marcarClaveComoCambiada(email) {
+  if (email) {
+    usuariosClaveCambiada.add(email.toLowerCase());
+  }
+}
+
+export function marcarClaveComoReset(email) {
+  if (email) {
+    usuariosClaveCambiada.delete(email.toLowerCase());
   }
 }
 

@@ -36,11 +36,10 @@ export default function UsuarioRoleEdit({ item, usuarios, roles, onSave, onCance
     setError('');
     setIsSubmitting(true);
     try {
-      // Actualizar la asignación primaria y crear las adicionales si seleccionó múltiples
-      await onSave(item.id, { usuario_id: usuarioId, rol_id: selectedRoles[0] });
-      setIsSubmitting(false);
+      await onSave(item.id, { usuario_id: Number(usuarioId), role_ids: selectedRoles });
     } catch (err) {
       setError(err.message || 'Error al actualizar asignación');
+    } finally {
       setIsSubmitting(false);
     }
   };

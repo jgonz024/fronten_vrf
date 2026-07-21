@@ -29,10 +29,7 @@ export default function UsuarioRoleAdd({ usuarios, roles, onSave, onCancel }) {
     setError('');
     setIsSubmitting(true);
     try {
-      // Guardar cada rol seleccionado para el usuario
-      for (const rolId of selectedRoles) {
-        await onSave({ usuario_id: usuarioId, rol_id: rolId });
-      }
+      await onSave({ usuario_id: Number(usuarioId), role_ids: selectedRoles });
     } catch (err) {
       setError(err.message || 'Error al asignar roles');
     } finally {
