@@ -17,40 +17,29 @@ export default function Sidebar({ activeTab, setActiveTab }) {
       flexDirection: 'column',
       gap: '24px'
     }}>
-      {/* Brand Header Integrado con Logo Horizontal Exclusivo */}
+      {/* Brand Header Integrado Sin Fondo Blanco */}
       <div style={{
-        background: 'rgba(15, 25, 50, 0.7)',
+        background: 'rgba(15, 25, 50, 0.5)',
         borderRadius: 'var(--radius-sm)',
-        border: '1px solid rgba(0, 198, 255, 0.2)',
-        padding: '14px 12px',
+        border: '1px solid rgba(0, 198, 255, 0.15)',
+        padding: '16px 12px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: '10px',
-        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.4)'
+        gap: '12px'
       }}>
-        {/* Badge Blanco para Logo VRF SYSTEMS® */}
-        <div style={{
-          background: 'linear-gradient(135deg, #ffffff, #f0f6ff)',
-          borderRadius: '10px',
-          padding: '10px 14px',
-          width: '100%',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          boxShadow: '0 4px 14px rgba(0, 0, 0, 0.25)'
-        }}>
-          <img
-            src={logoImg}
-            alt="VRF SYSTEMS®"
-            style={{
-              width: '100%',
-              height: 'auto',
-              maxHeight: '46px',
-              objectFit: 'contain'
-            }}
-          />
-        </div>
+        {/* Logo Transparente Directo sobre Fondo Oscuro */}
+        <img
+          src={logoImg}
+          alt="VRF SYSTEMS®"
+          style={{
+            width: '100%',
+            height: 'auto',
+            maxHeight: '56px',
+            objectFit: 'contain',
+            filter: 'drop-shadow(0 0 1px rgba(255, 255, 255, 0.7)) drop-shadow(0 4px 12px rgba(0, 198, 255, 0.25))'
+          }}
+        />
 
         {/* Subtítulo Estilizado en Cyan Neón */}
         <div style={{

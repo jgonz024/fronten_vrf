@@ -53,38 +53,29 @@ export default function LoginPage({ onLoginSuccess }) {
       <div className="glass-panel" style={{ width: '100%', maxWidth: '440px', padding: '36px 32px' }}>
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
           <div style={{
-            background: 'rgba(15, 25, 50, 0.7)',
-            padding: '16px 20px',
+            background: 'rgba(15, 25, 50, 0.5)',
+            padding: '20px 24px',
             borderRadius: '16px',
             border: '1px solid rgba(0, 198, 255, 0.2)',
             display: 'inline-flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: '10px',
+            gap: '12px',
             marginBottom: '16px',
             boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
             width: '100%'
           }}>
-            <div style={{
-              background: 'linear-gradient(135deg, #ffffff, #f0f6ff)',
-              borderRadius: '12px',
-              padding: '14px 18px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '100%'
-            }}>
-              <img
-                src={logoImg}
-                alt="VRF SYSTEMS"
-                style={{
-                  width: '100%',
-                  height: 'auto',
-                  maxHeight: '64px',
-                  objectFit: 'contain'
-                }}
-              />
-            </div>
+            <img
+              src={logoImg}
+              alt="VRF SYSTEMS®"
+              style={{
+                width: '100%',
+                height: 'auto',
+                maxHeight: '68px',
+                objectFit: 'contain',
+                filter: 'drop-shadow(0 0 1px rgba(255, 255, 255, 0.7)) drop-shadow(0 4px 12px rgba(0, 198, 255, 0.25))'
+              }}
+            />
             <span style={{
               fontSize: '11px',
               color: 'var(--accent-cyan)',
