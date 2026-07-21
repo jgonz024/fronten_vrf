@@ -1,4 +1,5 @@
 import React from 'react';
+import logoImg from '../../assets/images/logo.png';
 
 export default function Sidebar({ activeTab, setActiveTab }) {
   const menuItems = [
@@ -16,26 +17,30 @@ export default function Sidebar({ activeTab, setActiveTab }) {
       flexDirection: 'column',
       gap: '24px'
     }}>
-      {/* Brand Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '0 8px' }}>
+      {/* Brand Header con Logo Oficial */}
+      <div style={{ padding: '4px 8px' }}>
         <div style={{
-          width: '40px',
-          height: '40px',
-          borderRadius: '10px',
-          background: 'linear-gradient(135deg, #00c6ff, #0072ff)',
+          background: 'rgba(255, 255, 255, 0.95)',
+          padding: '10px 14px',
+          borderRadius: 'var(--radius-sm)',
+          boxShadow: '0 0 16px rgba(0, 198, 255, 0.25)',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '20px',
-          fontWeight: 'bold',
-          color: '#ffffff',
-          boxShadow: '0 0 16px rgba(0, 198, 255, 0.4)'
+          gap: '4px'
         }}>
-          ❄️
-        </div>
-        <div>
-          <h2 style={{ fontSize: '18px', color: '#ffffff', lineHeight: 1.1 }}>VRF Systems</h2>
-          <span style={{ fontSize: '11px', color: 'var(--accent-cyan)', letterSpacing: '0.05em', fontWeight: 600 }}>
+          <img
+            src={logoImg}
+            alt="VRF Systems Logo"
+            style={{ width: '100%', maxHeight: '42px', objectFit: 'contain' }}
+          />
+          <span style={{
+            fontSize: '10px',
+            color: '#0072ff',
+            letterSpacing: '0.12em',
+            fontWeight: 700,
+            textTransform: 'uppercase'
+          }}>
             SUPPORT MANAGEMENT
           </span>
         </div>

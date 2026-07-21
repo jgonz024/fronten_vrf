@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { loginApi, solicitarRecuperacionApi } from '../../api/auth.api';
+import logoImg from '../../assets/images/logo.png';
 
 export default function LoginPage({ onLoginSuccess }) {
   const [mode, setMode] = useState('login'); // 'login' | 'recovery'
@@ -52,22 +53,33 @@ export default function LoginPage({ onLoginSuccess }) {
       <div className="glass-panel" style={{ width: '100%', maxWidth: '420px', padding: '36px 32px' }}>
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
           <div style={{
-            width: '54px',
-            height: '54px',
-            margin: '0 auto 12px auto',
-            borderRadius: '14px',
-            background: 'linear-gradient(135deg, #00c6ff, #0072ff)',
-            display: 'flex',
+            background: 'rgba(255, 255, 255, 0.95)',
+            padding: '12px 20px',
+            borderRadius: '12px',
+            boxShadow: '0 0 24px rgba(0, 198, 255, 0.35)',
+            display: 'inline-flex',
+            flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '28px',
-            boxShadow: '0 0 24px rgba(0, 198, 255, 0.5)'
+            gap: '4px',
+            marginBottom: '16px'
           }}>
-            ❄️
+            <img
+              src={logoImg}
+              alt="VRF Systems Logo"
+              style={{ height: '48px', objectFit: 'contain' }}
+            />
+            <span style={{
+              fontSize: '10px',
+              color: '#0072ff',
+              letterSpacing: '0.12em',
+              fontWeight: 700,
+              textTransform: 'uppercase'
+            }}>
+              SUPPORT MANAGEMENT
+            </span>
           </div>
-          <h2 style={{ fontSize: '24px', color: '#ffffff' }}>VRF Systems</h2>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-            Acceso al Sistema de Gestión HVAC & Soporte
+            Acceso al Sistema de Gestión & Soporte Técnico
           </p>
         </div>
 
