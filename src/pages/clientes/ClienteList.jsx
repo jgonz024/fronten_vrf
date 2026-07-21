@@ -440,15 +440,14 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, sele
                   <th>NOMBRE</th>
                   <th>MARCA / CATEGORÍA / TIPO</th>
                   <th>CONTACTO</th>
-                  <th>TELÉFONO</th>
-                  <th>EMAIL</th>
+                  <th>TELÉFONO / EMAIL</th>
                   <th>ACCIONES</th>
                 </tr>
               </thead>
               <tbody>
                 {currentListItems.length === 0 ? (
                   <tr>
-                    <td colSpan="7" style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>
+                    <td colSpan="6" style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>
                       No se encontraron clientes que coincidan con los filtros aplicados.
                     </td>
                   </tr>
@@ -498,8 +497,20 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, sele
                           </div>
                         </td>
                         <td style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{item.contacto || '-'}</td>
-                        <td style={{ fontSize: '12px' }}>{item.telefono || '-'}</td>
-                        <td style={{ fontSize: '12px', color: 'var(--accent-cyan)' }}>{item.email || '-'}</td>
+                        <td>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontSize: '12px' }}>
+                            {item.telefono ? (
+                              <div>📞 <span style={{ color: 'var(--text-primary)' }}>{item.telefono}</span></div>
+                            ) : (
+                              <div style={{ color: 'var(--text-muted)' }}>📞 -</div>
+                            )}
+                            {item.email ? (
+                              <div style={{ color: 'var(--accent-cyan)', wordBreak: 'break-all' }}>✉️ {item.email}</div>
+                            ) : (
+                              <div style={{ color: 'var(--text-muted)' }}>✉️ -</div>
+                            )}
+                          </div>
+                        </td>
                         <td>
                           <div style={{ display: 'flex', gap: '6px' }}>
                             <button onClick={(e) => { e.stopPropagation(); onSelectCliente(item); }} className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '11px' }}>
