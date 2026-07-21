@@ -2,7 +2,7 @@ import React from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
 
-export default function MainLayout({ activeTab, setActiveTab, userSession, onLogout, children }) {
+export default function MainLayout({ activeTab, setActiveTab, userSession, onOpenProfile, onLogout, children }) {
   const titles = {
     usuarios: { title: 'Gestión de Usuarios', subtitle: 'Administración de cuentas, técnicos y credenciales' },
     roles: { title: 'Gestión de Roles', subtitle: 'Definición de perfiles y niveles de autorización' },
@@ -20,6 +20,7 @@ export default function MainLayout({ activeTab, setActiveTab, userSession, onLog
           title={currentHeader.title}
           subtitle={currentHeader.subtitle}
           userSession={userSession}
+          onOpenProfile={onOpenProfile}
           onLogout={onLogout}
         />
         

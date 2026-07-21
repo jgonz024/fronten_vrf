@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function Header({ title, subtitle, userSession, onLogout }) {
+export default function Header({ title, subtitle, userSession, onOpenProfile, onLogout }) {
   const userName = userSession?.usuario?.nombre || 'Administrador VRF';
   const roles = userSession?.usuario?.roles || [{ nombre: 'ADMINISTRADOR' }];
 
@@ -21,12 +21,44 @@ export default function Header({ title, subtitle, userSession, onLogout }) {
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '6px 14px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}>
-          <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--accent-cyan), var(--accent-blue))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 700, color: '#ffffff' }}>
+        {/* Botón de perfil interactivo al hacer clic en el usuario */}
+        <button
+          onClick={onOpenProfile}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            padding: '6px 14px',
+            background: 'rgba(255, 255, 255, 0.05)',
+            borderRadius: 'var(--radius-sm)',
+            border: '1px solid var(--border-color)',
+            cursor: 'pointer',
+            textAlign: 'left',
+            transition: 'all 0.2s ease'
+          }}
+          className="btn-user-profile"
+          title="Haz clic para editar tu perfil de usuario"
+        >
+          <div style={{
+            width: '34px',
+            height: '34px',
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, var(--accent-cyan), var(--accent-blue))',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '13px',
+            fontWeight: 700,
+            color: '#ffffff',
+            boxShadow: '0 0 10px rgba(0, 198, 255, 0.3)'
+          }}>
             {userName.substring(0, 2).toUpperCase()}
           </div>
-          <div style={{ textAlign: 'left' }}>
-            <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>{userName}</div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>{userName}</span>
+              <span style={{ fontSize: '11px', color: 'var(--accent-cyan)' }}>✏️</span>
+            </div>
             <div style={{ display: 'flex', gap: '4px', marginTop: '2px' }}>
               {roles.map(r => (
                 <span key={r.id || r.nombre} className="badge badge-role" style={{ fontSize: '9px', padding: '2px 6px' }}>
@@ -35,7 +67,7 @@ export default function Header({ title, subtitle, userSession, onLogout }) {
               ))}
             </div>
           </div>
-        </div>
+        </button>
 
         <button
           onClick={onLogout}

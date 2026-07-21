@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import MainLayout from './components/layout/MainLayout';
 import LoginPage from './pages/auth/LoginPage';
 import CambiarPasswordModal from './pages/auth/CambiarPasswordModal';
+import PerfilModal from './pages/auth/PerfilModal';
 import UsuariosPage from './pages/usuarios/UsuariosPage';
 import RolesPage from './pages/roles/RolesPage';
 import UsuariosRolesPage from './pages/usuarios_roles/UsuariosRolesPage';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('usuarios');
+  const [showPerfilModal, setShowPerfilModal] = useState(false);
   const [session, setSession] = useState(() => {
     const saved = localStorage.getItem('vrf_session');
     return saved ? JSON.parse(saved) : null;
@@ -36,8 +38,19 @@ export default function App() {
     }
   };
 
+  const handleProfileUpdated = (updatedUsuarioData) => {
+    if (session) {
+      const updatedSession = {
+        ...session,
+        usuario: { ...session.usuario, ...updatedUsuarioData }
+      };
+      setSession(updatedSession);
+    }
+  };
+
   const handleLogout = () => {
     setSession(null);
+    setShowPerfilModal(false);
   };
 
   if (!session) {
@@ -53,10 +66,19 @@ export default function App() {
         />
       )}
 
+      {showPerfilModal && (
+        <PerfilModal
+          userSession={session}
+          onClose={() => setShowPerfilModal(false)}
+          onProfileUpdated={handleProfileUpdated}
+        />
+      )}
+
       <MainLayout
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         userSession={session}
+        onOpenProfile={() => setShowPerfilModal(true)}
         onLogout={handleLogout}
       >
         {activeTab === 'usuarios' && <UsuariosPage />}
