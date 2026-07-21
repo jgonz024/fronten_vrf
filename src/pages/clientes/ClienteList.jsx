@@ -39,7 +39,7 @@ export default function ClienteList({ clientes, onAddNew, onEdit, onDelete }) {
           <input
             type="text"
             className="form-input"
-            placeholder="🔍 Buscar por cliente, RUT, contacto, email..."
+            placeholder="🔍 Buscar por nombre, contacto, email..."
             value={searchTerm}
             onChange={handleSearchChange}
             style={{ width: '320px' }}
@@ -55,12 +55,9 @@ export default function ClienteList({ clientes, onAddNew, onEdit, onDelete }) {
           <thead>
             <tr>
               <th>ID</th>
-              <th>CÓDIGO</th>
-              <th>CLIENTE / RAZÓN SOCIAL</th>
-              <th>TIPO</th>
-              <th>MARCA / CAT.</th>
+              <th>NOMBRE</th>
+              <th>MARCA / CATEGORÍA</th>
               <th>CONTACTO</th>
-              <th>RUT</th>
               <th>TELÉFONO</th>
               <th>EMAIL</th>
               <th>ACCIONES</th>
@@ -69,7 +66,7 @@ export default function ClienteList({ clientes, onAddNew, onEdit, onDelete }) {
           <tbody>
             {currentItems.length === 0 ? (
               <tr>
-                <td colSpan="10" style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>
+                <td colSpan="7" style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>
                   No se encontraron clientes que coincidan con la búsqueda.
                 </td>
               </tr>
@@ -78,17 +75,7 @@ export default function ClienteList({ clientes, onAddNew, onEdit, onDelete }) {
                 <tr key={item.id}>
                   <td><span style={{ fontWeight: 700, color: 'var(--accent-cyan)' }}>#{item.id}</span></td>
                   <td>
-                    <span className="badge" style={{ background: 'rgba(255, 255, 255, 0.08)', color: 'var(--text-primary)', fontSize: '11px' }}>
-                      {item.n_cliente || item.idcliente || 'N/A'}
-                    </span>
-                  </td>
-                  <td>
                     <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>🏢 {item.cliente}</div>
-                  </td>
-                  <td>
-                    <span className="badge badge-role" style={{ fontSize: '11px' }}>
-                      {item.tipo_cliente_nombre || 'Sin Tipo'}
-                    </span>
                   </td>
                   <td>
                     <span className="badge badge-active" style={{ fontSize: '11px' }}>
@@ -96,16 +83,15 @@ export default function ClienteList({ clientes, onAddNew, onEdit, onDelete }) {
                     </span>
                   </td>
                   <td style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{item.contacto || '-'}</td>
-                  <td style={{ fontSize: '13px', fontFamily: 'monospace' }}>{item.rut || '-'}</td>
                   <td style={{ fontSize: '12px' }}>{item.telefono || '-'}</td>
                   <td style={{ fontSize: '12px', color: 'var(--accent-cyan)' }}>{item.email || '-'}</td>
                   <td>
                     <div style={{ display: 'flex', gap: '6px' }}>
                       <button onClick={() => onEdit(item)} className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '11px' }}>
-                        ✏️
+                        ✏️ Editar
                       </button>
                       <button onClick={() => onDelete(item.id)} className="btn btn-danger" style={{ padding: '4px 8px', fontSize: '11px' }}>
-                        🗑️
+                        🗑️ Eliminar
                       </button>
                     </div>
                   </td>
