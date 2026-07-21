@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { fetchClientes, createCliente, updateCliente, deleteCliente, restoreCliente } from '../../api/clientes.api';
+import { fetchTiposCliente } from '../../api/tipoCliente.api';
+import { fetchCategoriasCliente } from '../../api/categoriaCliente.api';
 import ClienteList from './ClienteList';
 import ClienteAdd from './ClienteAdd';
 import ClienteEdit from './ClienteEdit';
 
 export default function ClientesPage({ userSession }) {
   const [clientes, setClientes] = useState([]);
+  const [tipos, setTipos] = useState([]);
+  const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [view, setView] = useState('list'); // 'list' | 'add' | 'edit'
@@ -17,10 +21,16 @@ export default function ClientesPage({ userSession }) {
     setLoading(true);
     setError('');
     try {
-      const data = await fetchClientes(isAdmin);
-      setClientes(data);
+      const [cData, tData, catData] = await Promise.all([
+        fetchClientes(isAdmin),
+        fetchTiposCliente(isAdmin),
+        fetchCategoriasCliente(isAdmin)
+      ]);
+      setClientes(cData);
+      setTipos(tData);
+      setCategorias(catData);
     } catch (err) {
-      setError(err.message || 'Error al obtener clientes');
+      setError(err.message || 'Error al obtener datos de clientes');
     } finally {
       setLoading(false);
     }
@@ -66,7 +76,7 @@ export default function ClientesPage({ userSession }) {
   if (loading) {
     return (
       <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-        ⏳ Cargando clientes desde PostgreSQL...
+        ⏳ Cargando directorio de clientes desde PostgreSQL...
       </div>
     );
   }
@@ -82,6 +92,8 @@ export default function ClientesPage({ userSession }) {
       {view === 'list' && (
         <ClienteList
           clientes={clientes}
+          tipos={tipos}
+          categorias={categorias}
           isAdmin={isAdmin}
           onAddNew={() => setView('add')}
           onEdit={(cli) => { setSelectedCliente(cli); setView('edit'); }}
