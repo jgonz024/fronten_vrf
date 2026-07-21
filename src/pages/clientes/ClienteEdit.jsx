@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { fetchTiposCliente } from '../../api/tipoCliente.api';
 import { fetchCategoriasCliente } from '../../api/categoriaCliente.api';
+import ClienteDireccionesSection from '../direcciones/ClienteDireccionesSection';
 
 export default function ClienteEdit({ cliente, isAdmin, onSave, onDelete, onRestore, onCancel }) {
   const [formData, setFormData] = useState({
@@ -94,7 +95,7 @@ export default function ClienteEdit({ cliente, isAdmin, onSave, onDelete, onRest
       }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--accent-cyan)', fontWeight: 700, letterSpacing: '0.1em' }}>
-            DETALLES Y EDICIÓN
+            DETALLES Y EDICIÓN DE CLIENTE
           </div>
           <h3 style={{ fontSize: '15px', color: '#ffffff', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             🏢 {cliente?.cliente || 'Cliente'}
@@ -151,7 +152,7 @@ export default function ClienteEdit({ cliente, isAdmin, onSave, onDelete, onRest
         </div>
       )}
 
-      {/* Formulario Editable en Vivo */}
+      {/* Formulario Editable del Cliente */}
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
           <div className="form-group" style={{ marginBottom: 0 }}>
@@ -262,16 +263,24 @@ export default function ClienteEdit({ cliente, isAdmin, onSave, onDelete, onRest
           />
         </div>
 
-        {/* Pie del Panel con Botón Guardar */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px', paddingTop: '14px', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
+        {/* Pie del Formulario con Botón Guardar */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '6px', paddingTop: '12px', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
           <button type="button" onClick={onCancel} className="btn btn-secondary" style={{ fontSize: '12px' }}>
             Cancelar
           </button>
           <button type="submit" disabled={isSubmitting} className="btn btn-primary" style={{ fontSize: '12px' }}>
-            {isSubmitting ? 'Guardando...' : '✏️ Guardar Cambios'}
+            {isSubmitting ? 'Guardando...' : '✏️ Guardar Datos del Cliente'}
           </button>
         </div>
       </form>
+
+      {/* SECCIÓN MULTI-DIRECCIONES DEL CLIENTE */}
+      {cliente?.id && (
+        <ClienteDireccionesSection
+          clienteId={cliente.id}
+          isAdmin={isAdmin}
+        />
+      )}
     </div>
   );
 }
