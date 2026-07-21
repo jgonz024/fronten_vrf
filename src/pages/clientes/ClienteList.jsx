@@ -39,7 +39,8 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, sele
         (c.rut && c.rut.toLowerCase().includes(term)) ||
         (c.telefono && c.telefono.toLowerCase().includes(term)) ||
         (c.idcliente && c.idcliente.toLowerCase().includes(term)) ||
-        (c.n_cliente && c.n_cliente.toLowerCase().includes(term))
+        (c.n_cliente && c.n_cliente.toLowerCase().includes(term)) ||
+        (c.cliente_padre_nombre && c.cliente_padre_nombre.toLowerCase().includes(term))
       );
       if (!matchText) return false;
     }
@@ -281,7 +282,6 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, sele
           ) : (
             /* ESTADO 2: Categoría seleccionada -> Mostrar Tarjetas de Clientes */
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              {/* Barra Informativa de la Categoría Activa */}
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -312,7 +312,6 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, sele
                 </button>
               </div>
 
-              {/* Grid de Tarjetas de Clientes (Selección interactiva con panel derecho) */}
               {filteredClientes.length === 0 ? (
                 <div className="glass-panel" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
                   No hay clientes registrados en esta categoría que coincidan con los filtros aplicados.
@@ -326,6 +325,7 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, sele
                   {filteredClientes.map(item => {
                     const isDeleted = item.eliminado;
                     const isSelected = selectedClienteId === item.id;
+                    const isClienteFinal = Boolean(item.id_cliente_padre);
                     return (
                       <div
                         key={item.id}
@@ -372,6 +372,15 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, sele
                           <h4 style={{ fontSize: '15px', fontWeight: 700, color: '#ffffff', marginBottom: '4px', lineHeight: 1.3 }}>
                             🏢 {item.cliente}
                           </h4>
+
+                          {isClienteFinal && (
+                            <div style={{ margin: '4px 0' }}>
+                              <span className="badge" style={{ background: 'rgba(234, 179, 8, 0.18)', color: '#facc15', border: '1px solid rgba(234, 179, 8, 0.3)', fontSize: '10px', fontWeight: 700 }}>
+                                🔗 Cliente Final (Padre: {item.cliente_padre_nombre})
+                              </span>
+                            </div>
+                          )}
+
                           {isDeleted && (
                             <span style={{ fontSize: '11px', color: '#fca5a5', fontWeight: 600 }}>
                               🗑️ Eliminado (Lógico)
@@ -428,7 +437,7 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, sele
               <thead>
                 <tr>
                   <th>ID</th>
-                  <th>NOMBRE</th>
+                  <th>NOMBRE Y TIPO DE CLIENTE</th>
                   <th>MARCA / CATEGORÍA</th>
                   <th>TIPO</th>
                   <th>CONTACTO</th>
@@ -448,6 +457,7 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, sele
                   currentListItems.map(item => {
                     const isDeleted = item.eliminado;
                     const isSelected = selectedClienteId === item.id;
+                    const isClienteFinal = Boolean(item.id_cliente_padre);
                     return (
                       <tr
                         key={item.id}
@@ -464,6 +474,13 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, sele
                         <td>
                           <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
                             🏢 {item.cliente}
+                            {isClienteFinal && (
+                              <div style={{ marginTop: '2px' }}>
+                                <span className="badge" style={{ background: 'rgba(234, 179, 8, 0.18)', color: '#facc15', border: '1px solid rgba(234, 179, 8, 0.3)', fontSize: '10px', fontWeight: 700 }}>
+                                  🔗 Cliente Final (Padre: {item.cliente_padre_nombre})
+                                </span>
+                              </div>
+                            )}
                             {isDeleted && <span style={{ marginLeft: '8px', fontSize: '10px', color: '#fca5a5' }}>(Eliminado)</span>}
                           </div>
                         </td>

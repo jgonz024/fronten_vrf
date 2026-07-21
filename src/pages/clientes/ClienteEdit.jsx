@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { fetchClientes } from '../../api/clientes.api';
 import { fetchTiposCliente } from '../../api/tipoCliente.api';
 import { fetchCategoriasCliente } from '../../api/categoriaCliente.api';
 import ClienteDireccionesSection from '../direcciones/ClienteDireccionesSection';
@@ -13,8 +14,10 @@ export default function ClienteEdit({ cliente, isAdmin, onSave, onDelete, onRest
     rut: '',
     telefono: '',
     email: '',
-    id_categoria_cliente: ''
+    id_categoria_cliente: '',
+    id_cliente_padre: ''
   });
+  const [clientesBase, setClientesBase] = useState([]);
   const [tipos, setTipos] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [error, setError] = useState('');
@@ -24,12 +27,15 @@ export default function ClienteEdit({ cliente, isAdmin, onSave, onDelete, onRest
   useEffect(() => {
     async function loadSelectors() {
       try {
-        const [tData, cData] = await Promise.all([
+        const [cData, tData, catData] = await Promise.all([
+          fetchClientes(isAdmin),
           fetchTiposCliente(isAdmin),
           fetchCategoriasCliente(isAdmin)
         ]);
+        // Solo mostrar como posibles clientes padres a aquellos que NO dependen de otro padre y que no sean el cliente actual
+        setClientesBase(cData.filter(c => !c.id_cliente_padre && c.id !== cliente?.id));
         setTipos(tData);
-        setCategorias(cData);
+        setCategorias(catData);
       } catch (err) {
         console.error('Error al cargar selectores:', err);
       }
@@ -46,7 +52,8 @@ export default function ClienteEdit({ cliente, isAdmin, onSave, onDelete, onRest
         rut: cliente.rut || '',
         telefono: cliente.telefono || '',
         email: cliente.email || '',
-        id_categoria_cliente: cliente.id_categoria_cliente || ''
+        id_categoria_cliente: cliente.id_categoria_cliente || '',
+        id_cliente_padre: cliente.id_cliente_padre || ''
       });
       setError('');
       setSuccessInfo('');
@@ -74,6 +81,7 @@ export default function ClienteEdit({ cliente, isAdmin, onSave, onDelete, onRest
   };
 
   const isDeleted = cliente?.eliminado;
+  const isClienteFinal = Boolean(cliente?.id_cliente_padre);
 
   return (
     <div className="glass-panel" style={{
@@ -94,10 +102,17 @@ export default function ClienteEdit({ cliente, isAdmin, onSave, onDelete, onRest
         gap: '12px'
       }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--accent-cyan)', fontWeight: 700, letterSpacing: '0.1em' }}>
-            DETALLES Y EDICIÓN DE CLIENTE
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--accent-cyan)', fontWeight: 700, letterSpacing: '0.1em' }}>
+              DETALLES Y EDICIÓN DE CLIENTE
+            </span>
+            {isClienteFinal && (
+              <span className="badge" style={{ background: 'rgba(234, 179, 8, 0.2)', color: '#facc15', fontSize: '10px', fontWeight: 700 }}>
+                🔗 Cliente Final (Padre: {cliente.cliente_padre_nombre})
+              </span>
+            )}
           </div>
-          <h3 style={{ fontSize: '15px', color: '#ffffff', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <h3 style={{ fontSize: '15px', color: '#ffffff', margin: '2px 0 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             🏢 {cliente?.cliente || 'Cliente'}
           </h3>
         </div>
@@ -187,6 +202,26 @@ export default function ClienteEdit({ cliente, isAdmin, onSave, onDelete, onRest
             onChange={e => setFormData({ ...formData, cliente: e.target.value })}
             required
           />
+        </div>
+
+        {/* Selector Cliente Padre */}
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label" style={{ fontSize: '11px' }}>🔗 Cliente Padre (Vendedor / Matriz Opcional)</label>
+          <select
+            className="form-input"
+            value={formData.id_cliente_padre}
+            onChange={e => setFormData({ ...formData, id_cliente_padre: e.target.value })}
+          >
+            <option value="" style={{ background: '#0b1329' }}>Ninguno (Cliente Independiente)</option>
+            {clientesBase.map(c => (
+              <option key={c.id} value={c.id} style={{ background: '#0b1329' }}>
+                🏢 {c.cliente} (#{c.id})
+              </option>
+            ))}
+          </select>
+          <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px' }}>
+            Si un cliente depende de otro (ej: reventa de equipos o edificio), se marca automáticamente como Cliente Final.
+          </div>
         </div>
 
         <div className="form-group" style={{ marginBottom: 0 }}>

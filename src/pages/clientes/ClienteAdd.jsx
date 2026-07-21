@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { fetchClientes } from '../../api/clientes.api';
 import { fetchTiposCliente } from '../../api/tipoCliente.api';
 import { fetchCategoriasCliente } from '../../api/categoriaCliente.api';
 
@@ -12,8 +13,10 @@ export default function ClienteAdd({ onSave, onCancel }) {
     rut: '',
     telefono: '',
     email: '',
-    id_categoria_cliente: ''
+    id_categoria_cliente: '',
+    id_cliente_padre: ''
   });
+  const [clientesBase, setClientesBase] = useState([]);
   const [tipos, setTipos] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [error, setError] = useState('');
@@ -22,14 +25,15 @@ export default function ClienteAdd({ onSave, onCancel }) {
   useEffect(() => {
     async function loadSelectors() {
       try {
-        const [tData, cData] = await Promise.all([
+        const [cData, tData, catData] = await Promise.all([
+          fetchClientes(),
           fetchTiposCliente(),
           fetchCategoriasCliente()
         ]);
+        // Solo mostrar como posibles clientes padres a aquellos que NO dependen de otro padre
+        setClientesBase(cData.filter(c => !c.id_cliente_padre));
         setTipos(tData);
-        setCategorias(cData);
-        if (tData.length > 0) setFormData(prev => ({ ...prev, id_tipo_cliente: tData[0].id }));
-        if (cData.length > 0) setFormData(prev => ({ ...prev, id_categoria_cliente: cData[0].id }));
+        setCategorias(catData);
       } catch (err) {
         console.error('Error al cargar selectores:', err);
       }
@@ -56,143 +60,169 @@ export default function ClienteAdd({ onSave, onCancel }) {
   };
 
   return (
-    <div className="glass-panel" style={{ padding: '28px', maxWidth: '640px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h3 style={{ fontSize: '18px', color: 'var(--text-primary)' }}>🏢 Crear Nuevo Cliente</h3>
-        <button onClick={onCancel} className="btn btn-secondary" style={{ padding: '4px 10px', fontSize: '12px' }}>
-          ✕ Cancelar
+    <div className="glass-panel" style={{
+      padding: '24px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '20px',
+      border: '1px solid rgba(0, 198, 255, 0.3)',
+      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)'
+    }}>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingBottom: '14px',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+      }}>
+        <h3 style={{ fontSize: '15px', color: '#ffffff', margin: 0 }}>🏢 Crear Nuevo Cliente</h3>
+        <button type="button" onClick={onCancel} className="btn btn-secondary" style={{ padding: '6px 10px', fontSize: '12px' }}>
+          ✕
         </button>
       </div>
 
       {error && (
-        <div style={{ padding: '10px 14px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: 'var(--radius-sm)', color: '#fca5a5', fontSize: '13px', marginBottom: '16px' }}>
+        <div style={{ padding: '10px 14px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: 'var(--radius-sm)', color: '#fca5a5', fontSize: '12px' }}>
           ⚠️ {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-          <div className="form-group">
-            <label className="form-label">Código Interno (ID Cliente)</label>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label className="form-label" style={{ fontSize: '11px' }}>N° del Cliente</label>
             <input
               type="text"
               className="form-input"
-              placeholder="Ej. AC333704"
-              value={formData.idcliente}
-              onChange={e => setFormData({ ...formData, idcliente: e.target.value })}
+              value={formData.n_cliente}
+              onChange={e => setFormData({ ...formData, n_cliente: e.target.value })}
+              placeholder="Ej. CL-1432"
             />
           </div>
 
-          <div className="form-group">
-            <label className="form-label">N° de Cliente</label>
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label className="form-label" style={{ fontSize: '11px' }}>Código Interno (ID)</label>
             <input
               type="text"
               className="form-input"
-              placeholder="Ej. CL-3"
-              value={formData.n_cliente}
-              onChange={e => setFormData({ ...formData, n_cliente: e.target.value })}
+              value={formData.idcliente}
+              onChange={e => setFormData({ ...formData, idcliente: e.target.value })}
+              placeholder="Ej. 3E63D07B"
             />
           </div>
         </div>
 
-        <div className="form-group">
-          <label className="form-label">Nombre / Razón Social *</label>
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label" style={{ fontSize: '11px' }}>Nombre (o Razón Social) del Cliente *</label>
           <input
             type="text"
             className="form-input"
-            placeholder="Ej. HOTEL MERCURE CHILE"
             value={formData.cliente}
             onChange={e => setFormData({ ...formData, cliente: e.target.value })}
+            placeholder="Nombre completo de la empresa o persona"
             required
           />
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-          <div className="form-group">
-            <label className="form-label">Tipo de Cliente (FK)</label>
-            <select
-              className="form-input"
-              value={formData.id_tipo_cliente}
-              onChange={e => setFormData({ ...formData, id_tipo_cliente: e.target.value })}
-            >
-              {tipos.map(t => (
-                <option key={t.id} value={t.id} style={{ background: '#0b1329' }}>
-                  {t.nombre}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Categoría / Marca (FK)</label>
-            <select
-              className="form-input"
-              value={formData.id_categoria_cliente}
-              onChange={e => setFormData({ ...formData, id_categoria_cliente: e.target.value })}
-            >
-              {categorias.map(c => (
-                <option key={c.id} value={c.id} style={{ background: '#0b1329' }}>
-                  {c.nombre}
-                </option>
-              ))}
-            </select>
+        {/* Cliente Padre / Vendedor Original */}
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label" style={{ fontSize: '11px' }}>🔗 Cliente Padre (Vendedor / Matriz Opcional)</label>
+          <select
+            className="form-input"
+            value={formData.id_cliente_padre}
+            onChange={e => setFormData({ ...formData, id_cliente_padre: e.target.value })}
+          >
+            <option value="" style={{ background: '#0b1329' }}>Ninguno (Cliente Independiente)</option>
+            {clientesBase.map(c => (
+              <option key={c.id} value={c.id} style={{ background: '#0b1329' }}>
+                🏢 {c.cliente} (#{c.id})
+              </option>
+            ))}
+          </select>
+          <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px' }}>
+            Si selecciona un padre, este registro será un Cliente Final derivado.
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-          <div className="form-group">
-            <label className="form-label">Contacto Responsable</label>
-            <input
-              type="text"
-              className="form-input"
-              placeholder="Ej. Alejandro Araya"
-              value={formData.contacto}
-              onChange={e => setFormData({ ...formData, contacto: e.target.value })}
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">RUT</label>
-            <input
-              type="text"
-              className="form-input"
-              placeholder="76.789.345-0"
-              value={formData.rut}
-              onChange={e => setFormData({ ...formData, rut: e.target.value })}
-            />
-          </div>
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label" style={{ fontSize: '11px' }}>Tipo de Cliente</label>
+          <select
+            className="form-input"
+            value={formData.id_tipo_cliente}
+            onChange={e => setFormData({ ...formData, id_tipo_cliente: e.target.value })}
+          >
+            <option value="" style={{ background: '#0b1329' }}>Seleccionar Tipo</option>
+            {tipos.map(t => (
+              <option key={t.id} value={t.id} style={{ background: '#0b1329' }}>
+                {t.nombre}
+              </option>
+            ))}
+          </select>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-          <div className="form-group">
-            <label className="form-label">Teléfono de Contacto</label>
-            <input
-              type="text"
-              className="form-input"
-              placeholder="+56 9 9746 8072"
-              value={formData.telefono}
-              onChange={e => setFormData({ ...formData, telefono: e.target.value })}
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Correo Electrónico</label>
-            <input
-              type="email"
-              className="form-input"
-              placeholder="contacto@empresa.cl"
-              value={formData.email}
-              onChange={e => setFormData({ ...formData, email: e.target.value })}
-            />
-          </div>
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label" style={{ fontSize: '11px' }}>Categoría / Marca del Cliente</label>
+          <select
+            className="form-input"
+            value={formData.id_categoria_cliente}
+            onChange={e => setFormData({ ...formData, id_categoria_cliente: e.target.value })}
+          >
+            <option value="" style={{ background: '#0b1329' }}>Seleccionar Categoría</option>
+            {categorias.map(c => (
+              <option key={c.id} value={c.id} style={{ background: '#0b1329' }}>
+                {c.nombre}
+              </option>
+            ))}
+          </select>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
-          <button type="button" onClick={onCancel} className="btn btn-secondary">
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label" style={{ fontSize: '11px' }}>RUT del Cliente</label>
+          <input
+            type="text"
+            className="form-input"
+            value={formData.rut}
+            onChange={e => setFormData({ ...formData, rut: e.target.value })}
+            placeholder="Ej. 76.517.759-K"
+          />
+        </div>
+
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label" style={{ fontSize: '11px' }}>Persona de Contacto</label>
+          <input
+            type="text"
+            className="form-input"
+            value={formData.contacto}
+            onChange={e => setFormData({ ...formData, contacto: e.target.value })}
+          />
+        </div>
+
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label" style={{ fontSize: '11px' }}>Teléfono de Contacto</label>
+          <input
+            type="text"
+            className="form-input"
+            value={formData.telefono}
+            onChange={e => setFormData({ ...formData, telefono: e.target.value })}
+          />
+        </div>
+
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label" style={{ fontSize: '11px' }}>Email de Contacto</label>
+          <input
+            type="email"
+            className="form-input"
+            value={formData.email}
+            onChange={e => setFormData({ ...formData, email: e.target.value })}
+          />
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px', paddingTop: '14px', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
+          <button type="button" onClick={onCancel} className="btn btn-secondary" style={{ fontSize: '12px' }}>
             Cancelar
           </button>
-          <button type="submit" disabled={isSubmitting} className="btn btn-primary">
-            {isSubmitting ? 'Guardando...' : '💾 Crear Cliente'}
+          <button type="submit" disabled={isSubmitting} className="btn btn-primary" style={{ fontSize: '12px' }}>
+            {isSubmitting ? 'Creando...' : '💾 Crear Cliente'}
           </button>
         </div>
       </form>
