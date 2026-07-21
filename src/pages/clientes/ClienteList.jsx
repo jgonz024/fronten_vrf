@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 
 export default function ClienteList({ clientes, tipos, categorias, isAdmin, onAddNew, onEdit, onDelete, onRestore }) {
-  const [displayMode, setDisplayMode] = useState('cards'); // 'list' | 'cards'
-  const [groupBy, setGroupBy] = useState('categoria'); // 'none' | 'categoria' | 'tipo'
+  const [displayMode, setDisplayMode] = useState('cards'); // 'cards' | 'list'
   
   // Filtros acumulables
   const [searchTerm, setSearchTerm] = useState('');
@@ -12,7 +11,23 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, onAd
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 20;
 
-  // Filtrado acumulable (AND)
+  // Conteo de clientes por categoría para las Tarjetas Resumen de Categorías
+  const getCategoriaCounts = () => {
+    const counts = {};
+    clientes.forEach(c => {
+      if (!c.eliminado || isAdmin) {
+        const catId = c.id_categoria_cliente;
+        if (catId) {
+          counts[catId] = (counts[catId] || 0) + 1;
+        }
+      }
+    });
+    return counts;
+  };
+
+  const categoriaCounts = getCategoriaCounts();
+
+  // Filtrado acumulable (AND) para la lista / tarjetas de clientes
   const filteredClientes = clientes.filter(c => {
     // 1. Buscador de texto acumulable
     if (searchTerm.trim()) {
@@ -55,29 +70,8 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, onAd
 
   const hasActiveFilters = searchTerm !== '' || selectedCategoriaId !== '' || selectedTipoId !== '';
 
-  // Lógica de Agrupación para Modo Tarjetas
-  const getGroupedData = () => {
-    if (groupBy === 'none') {
-      return { 'Todos los Clientes': filteredClientes };
-    }
-
-    const grouped = {};
-    filteredClientes.forEach(item => {
-      let key = 'Sin Especificar';
-      if (groupBy === 'categoria') {
-        key = item.categoria_cliente_nombre || 'Sin Categoría / Marca';
-      } else if (groupBy === 'tipo') {
-        key = item.tipo_cliente_nombre || 'Sin Tipo de Cliente';
-      }
-
-      if (!grouped[key]) {
-        grouped[key] = [];
-      }
-      grouped[key].push(item);
-    });
-
-    return grouped;
-  };
+  // Categoría actualmente seleccionada
+  const activeCategoria = categorias.find(c => String(c.id) === String(selectedCategoriaId));
 
   // Paginación para Modo Lista
   const totalPages = Math.ceil(filteredClientes.length / pageSize) || 1;
@@ -92,12 +86,14 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, onAd
           <div>
             <h3 style={{ fontSize: '18px', color: 'var(--text-primary)', margin: 0 }}>Directorio de Clientes</h3>
             <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '4px 0 0 0' }}>
-              Filtra y agrupa los clientes por Marca, Tipo o Texto en tiempo real ({filteredClientes.length} de {clientes.length})
+              {selectedCategoriaId === '' && displayMode === 'cards'
+                ? 'Selecciona una categoría de marca para explorar sus clientes'
+                : `Mostrando ${filteredClientes.length} clientes`}
             </p>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-            {/* Toggle Modo de Visualización (Lista vs Tarjetas) */}
+            {/* Toggle Modo de Visualización (Tarjetas vs Lista) */}
             <div style={{ display: 'flex', background: 'rgba(10, 18, 41, 0.7)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', padding: '2px' }}>
               <button
                 onClick={() => setDisplayMode('cards')}
@@ -143,16 +139,16 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, onAd
           </div>
         </div>
 
-        {/* Barra de Filtros Acumulables (Buscador, Categoría, Tipo, Agrupador) */}
+        {/* Barra de Filtros Acumulables */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
           gap: '12px',
           alignItems: 'end',
           paddingTop: '14px',
           borderTop: '1px solid rgba(255, 255, 255, 0.08)'
         }}>
-          {/* Buscador general */}
+          {/* Buscador por texto */}
           <div className="form-group" style={{ marginBottom: 0 }}>
             <label className="form-label" style={{ fontSize: '11px' }}>🔍 Buscar por texto</label>
             <input
@@ -172,10 +168,10 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, onAd
               value={selectedCategoriaId}
               onChange={e => { setSelectedCategoriaId(e.target.value); setCurrentPage(1); }}
             >
-              <option value="" style={{ background: '#0b1329' }}>Todas las Marcas</option>
+              <option value="" style={{ background: '#0b1329' }}>Ver Categorías Principales</option>
               {categorias.map(cat => (
                 <option key={cat.id} value={cat.id} style={{ background: '#0b1329' }}>
-                  {cat.nombre}
+                  {cat.nombre} ({categoriaCounts[cat.id] || 0})
                 </option>
               ))}
             </select>
@@ -198,22 +194,6 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, onAd
             </select>
           </div>
 
-          {/* Selector de Agrupación (solo para modo Tarjetas) */}
-          {displayMode === 'cards' && (
-            <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label" style={{ fontSize: '11px' }}>📑 Agrupar Tarjetas por</label>
-              <select
-                className="form-input"
-                value={groupBy}
-                onChange={e => setGroupBy(e.target.value)}
-              >
-                <option value="categoria" style={{ background: '#0b1329' }}>Por Marca / Categoría</option>
-                <option value="tipo" style={{ background: '#0b1329' }}>Por Tipo de Cliente</option>
-                <option value="none" style={{ background: '#0b1329' }}>Sin Agrupar</option>
-              </select>
-            </div>
-          )}
-
           {/* Botón Limpiar Filtros */}
           {hasActiveFilters && (
             <button
@@ -227,47 +207,123 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, onAd
         </div>
       </div>
 
-      {/* VISTA 1: MODO TARJETAS (CARDS VIEW) */}
+      {/* VISTA MODO TARJETAS */}
       {displayMode === 'cards' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-          {Object.keys(getGroupedData()).length === 0 ? (
-            <div className="glass-panel" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
-              No se encontraron clientes que coincidan con la combinación de filtros aplicada.
+        <>
+          {/* ESTADO 1: Ninguna categoría seleccionada -> Mostrar Tarjetas Resumen de Categorías */}
+          {selectedCategoriaId === '' ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                Selecciona una Categoría / Marca para explorar sus clientes:
+              </div>
+
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+                gap: '18px'
+              }}>
+                {categorias.map(cat => {
+                  const count = categoriaCounts[cat.id] || 0;
+                  return (
+                    <div
+                      key={cat.id}
+                      onClick={() => {
+                        setSelectedCategoriaId(String(cat.id));
+                        setCurrentPage(1);
+                      }}
+                      className="glass-panel"
+                      style={{
+                        padding: '24px 20px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        gap: '16px',
+                        background: 'linear-gradient(135deg, rgba(15, 25, 50, 0.8), rgba(10, 18, 41, 0.6))',
+                        border: '1px solid rgba(0, 198, 255, 0.25)',
+                        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)'
+                      }}
+                      onMouseEnter={e => {
+                        e.currentTarget.style.transform = 'translateY(-4px)';
+                        e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 198, 255, 0.25)';
+                      }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.3)';
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span style={{ fontSize: '28px' }}>⭐</span>
+                        <span className="badge" style={{ background: 'rgba(0, 198, 255, 0.15)', color: 'var(--accent-cyan)', fontSize: '13px', fontWeight: 700, padding: '6px 12px' }}>
+                          {count} {count === 1 ? 'Cliente' : 'Clientes'}
+                        </span>
+                      </div>
+
+                      <div>
+                        <h4 style={{ fontSize: '18px', fontWeight: 700, color: '#ffffff', margin: '0 0 6px 0' }}>
+                          {cat.nombre}
+                        </h4>
+                        <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
+                          {cat.descripcion || 'Ver clientes registrados de esta categoría'}
+                        </p>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--accent-cyan)', fontWeight: 600, marginTop: '8px' }}>
+                        <span>Ver clientes</span>
+                        <span>→</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           ) : (
-            Object.entries(getGroupedData()).map(([groupName, groupItems]) => (
-              <div key={groupName} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                {/* Cabecera del Grupo */}
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  background: 'rgba(15, 25, 50, 0.8)',
-                  padding: '10px 16px',
-                  borderRadius: 'var(--radius-sm)',
-                  borderLeft: '4px solid var(--accent-cyan)',
-                  border: '1px solid rgba(0, 198, 255, 0.2)'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span style={{ fontSize: '16px' }}>
-                      {groupBy === 'categoria' ? '⭐' : groupBy === 'tipo' ? '🏢' : '📂'}
-                    </span>
-                    <h4 style={{ fontSize: '15px', fontWeight: 700, color: '#ffffff', margin: 0 }}>
-                      {groupName}
+            /* ESTADO 2: Categoría seleccionada -> Mostrar Tarjetas de Clientes de esa Categoría */
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {/* Barra Informativa de la Categoría Activa */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                background: 'rgba(15, 25, 50, 0.8)',
+                padding: '12px 18px',
+                borderRadius: 'var(--radius-sm)',
+                border: '1px solid rgba(0, 198, 255, 0.3)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span style={{ fontSize: '20px' }}>⭐</span>
+                  <div>
+                    <h4 style={{ fontSize: '16px', fontWeight: 700, color: '#ffffff', margin: 0 }}>
+                      Categoría: {activeCategoria ? activeCategoria.nombre : 'Seleccionada'}
                     </h4>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                      Mostrando {filteredClientes.length} clientes pertenecientes a esta marca
+                    </div>
                   </div>
-                  <span className="badge" style={{ background: 'rgba(0, 198, 255, 0.15)', color: 'var(--accent-cyan)', fontSize: '12px', fontWeight: 700 }}>
-                    {groupItems.length} {groupItems.length === 1 ? 'cliente' : 'clientes'}
-                  </span>
                 </div>
 
-                {/* Grid de Tarjetas */}
+                <button
+                  onClick={() => setSelectedCategoriaId('')}
+                  className="btn btn-secondary"
+                  style={{ padding: '6px 12px', fontSize: '12px' }}
+                >
+                  ← Volver a Ver Todas las Categorías
+                </button>
+              </div>
+
+              {/* Grid de Tarjetas de Clientes de la Categoría */}
+              {filteredClientes.length === 0 ? (
+                <div className="glass-panel" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                  No hay clientes registrados en esta categoría que coincidan con los filtros aplicados.
+                </div>
+              ) : (
                 <div style={{
                   display: 'grid',
                   gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))',
                   gap: '16px'
                 }}>
-                  {groupItems.map(item => {
+                  {filteredClientes.map(item => {
                     const isDeleted = item.eliminado;
                     return (
                       <div
@@ -279,14 +335,12 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, onAd
                           flexDirection: 'column',
                           justifyContent: 'space-between',
                           gap: '14px',
-                          position: 'relative',
                           opacity: isDeleted ? 0.55 : 1,
                           background: isDeleted ? 'rgba(239, 68, 68, 0.06)' : 'rgba(15, 25, 50, 0.65)',
-                          border: isDeleted ? '1px dashed rgba(239, 68, 68, 0.4)' : '1px solid var(--border-color)',
-                          transition: 'transform 0.2s ease, box-shadow 0.2s ease'
+                          border: isDeleted ? '1px dashed rgba(239, 68, 68, 0.4)' : '1px solid var(--border-color)'
                         }}
                       >
-                        {/* Header de la Tarjeta */}
+                        {/* Header Tarjeta Cliente */}
                         <div>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', marginBottom: '8px' }}>
                             <span style={{ fontSize: '11px', fontWeight: 700, color: isDeleted ? '#f87171' : 'var(--accent-cyan)' }}>
@@ -294,31 +348,18 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, onAd
                             </span>
                             <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                               {item.categoria_cliente_nombre && (
-                                <button
-                                  onClick={() => setSelectedCategoriaId(String(item.id_categoria_cliente))}
-                                  style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer' }}
-                                  title="Filtrar por esta marca"
-                                >
-                                  <span className="badge badge-active" style={{ fontSize: '10px' }}>
-                                    ⭐ {item.categoria_cliente_nombre}
-                                  </span>
-                                </button>
+                                <span className="badge badge-active" style={{ fontSize: '10px' }}>
+                                  ⭐ {item.categoria_cliente_nombre}
+                                </span>
                               )}
                               {item.tipo_cliente_nombre && (
-                                <button
-                                  onClick={() => setSelectedTipoId(String(item.id_tipo_cliente))}
-                                  style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer' }}
-                                  title="Filtrar por este tipo"
-                                >
-                                  <span className="badge badge-role" style={{ fontSize: '10px' }}>
-                                    {item.tipo_cliente_nombre}
-                                  </span>
-                                </button>
+                                <span className="badge badge-role" style={{ fontSize: '10px' }}>
+                                  {item.tipo_cliente_nombre}
+                                </span>
                               )}
                             </div>
                           </div>
 
-                          {/* Nombre de la Empresa / Cliente */}
                           <h4 style={{ fontSize: '15px', fontWeight: 700, color: '#ffffff', marginBottom: '4px', lineHeight: 1.3 }}>
                             🏢 {item.cliente}
                           </h4>
@@ -329,7 +370,7 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, onAd
                           )}
                         </div>
 
-                        {/* Datos de Contacto y Detalles */}
+                        {/* Detalles de contacto */}
                         <div style={{
                           display: 'flex',
                           flexDirection: 'column',
@@ -355,7 +396,7 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, onAd
                           )}
                         </div>
 
-                        {/* Botones de Acción de la Tarjeta */}
+                        {/* Botones de Acción */}
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', paddingTop: '8px', borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}>
                           {isDeleted ? (
                             isAdmin && (
@@ -378,13 +419,13 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, onAd
                     );
                   })}
                 </div>
-              </div>
-            ))
+              )}
+            </div>
           )}
-        </div>
+        </>
       )}
 
-      {/* VISTA 2: MODO LISTA (TABLE VIEW) */}
+      {/* VISTA MODO LISTA (TABLE VIEW) */}
       {displayMode === 'list' && (
         <div className="glass-panel" style={{ padding: '24px' }}>
           <div style={{ overflowX: 'auto' }}>
