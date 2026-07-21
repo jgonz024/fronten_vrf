@@ -58,6 +58,8 @@ export default function ClientesPage({ userSession }) {
       try {
         await deleteCliente(id);
         await loadData();
+        setView('list');
+        setSelectedCliente(null);
       } catch (err) {
         alert(err.message || 'Error al eliminar');
       }
@@ -113,6 +115,7 @@ export default function ClientesPage({ userSession }) {
         <ClienteEdit
           cliente={selectedCliente}
           onSave={handleSaveEdit}
+          onDelete={handleDelete}
           onCancel={() => { setView('list'); setSelectedCliente(null); }}
         />
       )}

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { fetchTiposCliente } from '../../api/tipoCliente.api';
 import { fetchCategoriasCliente } from '../../api/categoriaCliente.api';
 
-export default function ClienteEdit({ cliente, onSave, onCancel }) {
+export default function ClienteEdit({ cliente, onSave, onDelete, onCancel }) {
   const [formData, setFormData] = useState({
     idcliente: '',
     n_cliente: '',
@@ -192,13 +192,26 @@ export default function ClienteEdit({ cliente, onSave, onCancel }) {
           </div>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
-          <button type="button" onClick={onCancel} className="btn btn-secondary">
-            Cancelar
-          </button>
-          <button type="submit" disabled={isSubmitting} className="btn btn-primary">
-            {isSubmitting ? 'Actualizando...' : '💾 Guardar Cambios'}
-          </button>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px' }}>
+          {onDelete && cliente?.id && (
+            <button
+              type="button"
+              onClick={() => onDelete(cliente.id)}
+              className="btn btn-danger"
+              style={{ fontSize: '13px' }}
+            >
+              🗑️ Eliminar Cliente
+            </button>
+          )}
+
+          <div style={{ display: 'flex', gap: '12px', marginLeft: 'auto' }}>
+            <button type="button" onClick={onCancel} className="btn btn-secondary">
+              Cancelar
+            </button>
+            <button type="submit" disabled={isSubmitting} className="btn btn-primary">
+              {isSubmitting ? 'Actualizando...' : '💾 Guardar Cambios'}
+            </button>
+          </div>
         </div>
       </form>
     </div>
