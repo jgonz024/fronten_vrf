@@ -162,7 +162,7 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, onAd
 
           {/* Filtro Marca / Categoría */}
           <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label" style={{ fontSize: '11px' }}>⭐ Marca / Categoría</label>
+            <label className="form-label" style={{ fontSize: '11px' }}>🏷️ Marca / Categoría</label>
             <select
               className="form-input"
               value={selectedCategoriaId}
@@ -254,7 +254,7 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, onAd
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <span style={{ fontSize: '28px' }}>⭐</span>
+                        <span style={{ fontSize: '28px' }}>🏷️</span>
                         <span className="badge" style={{ background: 'rgba(0, 198, 255, 0.15)', color: 'var(--accent-cyan)', fontSize: '13px', fontWeight: 700, padding: '6px 12px' }}>
                           {count} {count === 1 ? 'Cliente' : 'Clientes'}
                         </span>
@@ -292,13 +292,13 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, onAd
                 border: '1px solid rgba(0, 198, 255, 0.3)'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span style={{ fontSize: '20px' }}>⭐</span>
+                  <span style={{ fontSize: '20px' }}>🏷️</span>
                   <div>
                     <h4 style={{ fontSize: '16px', fontWeight: 700, color: '#ffffff', margin: 0 }}>
                       Categoría: {activeCategoria ? activeCategoria.nombre : 'Seleccionada'}
                     </h4>
                     <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-                      Mostrando {filteredClientes.length} clientes. Haz clic en una tarjeta para editar sus datos.
+                      Mostrando {filteredClientes.length} clientes pertenecientes a esta marca
                     </div>
                   </div>
                 </div>
@@ -370,7 +370,7 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, onAd
                             <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                               {item.categoria_cliente_nombre && (
                                 <span className="badge badge-active" style={{ fontSize: '10px' }}>
-                                  ⭐ {item.categoria_cliente_nombre}
+                                  🏷️ {item.categoria_cliente_nombre}
                                 </span>
                               )}
                               {item.tipo_cliente_nombre && (
@@ -417,7 +417,7 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, onAd
                           )}
                         </div>
 
-                        {/* Indicador de Click para Editar (o botón de Restaurar para Admin) */}
+                        {/* Indicador de Click para Editar */}
                         {isDeleted ? (
                           isAdmin && (
                             <button
@@ -487,7 +487,7 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, onAd
                         </td>
                         <td>
                           <span className="badge badge-active" style={{ fontSize: '11px' }}>
-                            ⭐ {item.categoria_cliente_nombre || 'General'}
+                            🏷️ {item.categoria_cliente_nombre || 'General'}
                           </span>
                         </td>
                         <td>

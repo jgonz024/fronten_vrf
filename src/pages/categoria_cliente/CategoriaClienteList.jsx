@@ -5,7 +5,7 @@ export default function CategoriaClienteList({ categorias, isAdmin, onAddNew, on
     <div className="glass-panel" style={{ padding: '24px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <div>
-          <h3 style={{ fontSize: '18px', color: 'var(--text-primary)' }}>Listado de Categorías de Cliente</h3>
+          <h3 style={{ fontSize: '18px', color: 'var(--text-primary)' }}>Listado de Categorías / Marcas de Cliente</h3>
           <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Total registradas: {categorias.length}</p>
         </div>
         <button onClick={onAddNew} className="btn btn-primary">
@@ -40,7 +40,7 @@ export default function CategoriaClienteList({ categorias, isAdmin, onAddNew, on
                 >
                   <td><span style={{ fontWeight: 700, color: isDeleted ? '#f87171' : 'var(--accent-cyan)' }}>#{item.id}</span></td>
                   <td>
-                    <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>⭐ {item.nombre}</span>
+                    <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>🏷️ {item.nombre}</span>
                   </td>
                   <td style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>
                     {item.descripcion || 'Sin descripción'}

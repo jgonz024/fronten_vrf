@@ -29,7 +29,7 @@ export default function CategoriaClienteAdd({ onSave, onCancel }) {
   return (
     <div className="glass-panel" style={{ padding: '28px', maxWidth: '560px', margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h3 style={{ fontSize: '18px', color: 'var(--text-primary)' }}>⭐ Crear Categoría de Cliente</h3>
+        <h3 style={{ fontSize: '18px', color: 'var(--text-primary)' }}>🏷️ Crear Categoría de Cliente</h3>
         <button onClick={onCancel} className="btn btn-secondary" style={{ padding: '4px 10px', fontSize: '12px' }}>
           ✕ Cancelar
         </button>
