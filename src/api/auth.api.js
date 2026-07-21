@@ -1,6 +1,6 @@
-const AUTH_URL = 'http://localhost:3000/api/auth';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const AUTH_URL = `${API_BASE_URL}/auth`;
 
-// Set global de usuarios que ya cambiaron su clave en sesión local
 const usuariosClaveCambiada = new Set();
 
 export async function loginApi(email, password) {
@@ -14,7 +14,6 @@ export async function loginApi(email, password) {
     if (!res.ok || !json.success) {
       throw new Error(json.message || 'Error al iniciar sesión');
     }
-    // Si en el cliente local ya la cambió en memoria
     if (usuariosClaveCambiada.has(email.toLowerCase())) {
       json.data.debe_cambiar_password = false;
       json.data.usuario.debe_cambiar_password = false;
@@ -23,7 +22,6 @@ export async function loginApi(email, password) {
   } catch (err) {
     console.warn('Backend Auth no disponible, usando autenticación de prueba:', err.message);
     
-    // Si ya fue cambiada previamente, debe_cambiar_password es false
     const yaCambioClave = usuariosClaveCambiada.has(email.toLowerCase()) || password !== 'Vrf12345';
     
     if ((email === 'admin@vrfsystems.cl' || email === 'admin') && (password === 'Vrf12345' || password === '12137941' || yaCambioClave)) {
@@ -52,7 +50,6 @@ export async function cambiarPasswordApi(userId, currentPassword, newPassword) {
     const json = await res.json();
     if (!res.ok || !json.success) throw new Error(json.message || 'Error al cambiar contraseña');
     
-    // Registrar que la clave fue cambiada para este usuario
     usuariosClaveCambiada.add('admin@vrfsystems.cl');
     return json.data;
   } catch (err) {

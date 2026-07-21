@@ -5,21 +5,22 @@ import CambiarPasswordModal from './pages/auth/CambiarPasswordModal';
 import PerfilModal from './pages/auth/PerfilModal';
 import UsuariosPage from './pages/usuarios/UsuariosPage';
 import RolesPage from './pages/roles/RolesPage';
-import UsuariosRolesPage from './pages/usuarios_roles/UsuariosRolesPage';
+
+const SESSION_KEY = import.meta.env.VITE_SESSION_STORAGE_KEY || 'vrf_session';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('usuarios');
   const [showPerfilModal, setShowPerfilModal] = useState(false);
   const [session, setSession] = useState(() => {
-    const saved = localStorage.getItem('vrf_session');
+    const saved = localStorage.getItem(SESSION_KEY);
     return saved ? JSON.parse(saved) : null;
   });
 
   useEffect(() => {
     if (session) {
-      localStorage.setItem('vrf_session', JSON.stringify(session));
+      localStorage.setItem(SESSION_KEY, JSON.stringify(session));
     } else {
-      localStorage.removeItem('vrf_session');
+      localStorage.removeItem(SESSION_KEY);
     }
   }, [session]);
 
@@ -83,7 +84,6 @@ export default function App() {
       >
         {activeTab === 'usuarios' && <UsuariosPage />}
         {activeTab === 'roles' && <RolesPage />}
-        {activeTab === 'usuarios_roles' && <UsuariosRolesPage />}
       </MainLayout>
     </>
   );

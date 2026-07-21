@@ -1,4 +1,5 @@
-const API_URL = 'http://localhost:3000/api/usuarios-roles';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const API_URL = `${API_BASE_URL}/usuarios-roles`;
 
 let localUsuariosRoles = [
   { id: 1, usuario_id: 1, rol_id: 1, usuario_nombre: 'Juan Carlos Gómez', rol_nombre: 'ADMINISTRADOR', asignado_en: new Date().toISOString() },
@@ -45,7 +46,6 @@ export async function saveUserRolesApi(usuarioId, roleIds, usuariosList = [], ro
     return json.data;
   } catch (err) {
     console.warn('Guardando múltiples roles en estado local:', err.message);
-    // Eliminar asignaciones previas de este usuario en el mock
     localUsuariosRoles = localUsuariosRoles.filter(ur => ur.usuario_id !== numUserId);
 
     const usr = usuariosList.find(u => u.id === numUserId);

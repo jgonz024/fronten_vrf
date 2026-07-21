@@ -2,15 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { updateUsuario } from '../../api/usuarios.api';
 import { cambiarPasswordApi } from '../../api/auth.api';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+
 export default function PerfilModal({ userSession, onClose, onProfileUpdated }) {
   const usuario = userSession?.usuario || {};
   const [activeTab, setActiveTab] = useState('datos');
 
-  // Campos de perfil
   const [telefono, setTelefono] = useState(usuario.telefono || '');
   const [fotoUrl, setFotoUrl] = useState(usuario.foto_url || '');
 
-  // Formulario de contraseña
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -34,7 +35,7 @@ export default function PerfilModal({ userSession, onClose, onProfileUpdated }) 
       const formData = new FormData();
       formData.append('file', file);
 
-      const res = await fetch('http://localhost:3000/api/upload/usuario', {
+      const res = await fetch(`${API_BASE_URL}/upload/usuario`, {
         method: 'POST',
         body: formData
       });
@@ -66,7 +67,6 @@ export default function PerfilModal({ userSession, onClose, onProfileUpdated }) 
     setIsSubmitting(true);
 
     try {
-      // Se envían únicamente los campos editables (teléfono y foto_url), conservando nombre y email intactos
       const updatedUser = await updateUsuario(usuario.id, {
         telefono,
         foto_url: fotoUrl
@@ -117,7 +117,7 @@ export default function PerfilModal({ userSession, onClose, onProfileUpdated }) 
     }
   };
 
-  const fullFotoUrl = fotoUrl && fotoUrl.startsWith('/') ? `http://localhost:3000${fotoUrl}` : fotoUrl;
+  const fullFotoUrl = fotoUrl && fotoUrl.startsWith('/') ? `${BACKEND_URL}${fotoUrl}` : fotoUrl;
 
   return (
     <div style={{
@@ -213,7 +213,6 @@ export default function PerfilModal({ userSession, onClose, onProfileUpdated }) 
         {/* Tab 1: Datos y Fotografía */}
         {activeTab === 'datos' && (
           <form onSubmit={handleSaveDatos}>
-            {/* Foto de Perfil Upload */}
             <div className="form-group" style={{ background: 'rgba(10, 18, 41, 0.5)', padding: '14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}>
               <label className="form-label" style={{ marginBottom: '8px' }}>📷 Foto de Perfil (Guardada en /uploads/usuarios/)</label>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
@@ -235,7 +234,6 @@ export default function PerfilModal({ userSession, onClose, onProfileUpdated }) 
               </div>
             </div>
 
-            {/* Nombre Bloqueado */}
             <div className="form-group">
               <label className="form-label">
                 Nombre Completo <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(No editable)</span>
@@ -249,7 +247,6 @@ export default function PerfilModal({ userSession, onClose, onProfileUpdated }) 
               />
             </div>
 
-            {/* Email Bloqueado */}
             <div className="form-group">
               <label className="form-label">
                 Correo Electrónico <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(No editable)</span>
@@ -263,7 +260,6 @@ export default function PerfilModal({ userSession, onClose, onProfileUpdated }) 
               />
             </div>
 
-            {/* Teléfono Editable */}
             <div className="form-group">
               <label className="form-label">Teléfono de Contacto (Editable)</label>
               <input
@@ -275,7 +271,6 @@ export default function PerfilModal({ userSession, onClose, onProfileUpdated }) 
               />
             </div>
 
-            {/* Roles Dinámicos de las Tablas */}
             <div className="form-group">
               <label className="form-label">Roles Asignados (Desde Base de Datos)</label>
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '4px' }}>

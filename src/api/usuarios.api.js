@@ -1,7 +1,8 @@
-import { saveUserRolesApi, fetchUsuariosRoles } from './usuariosRoles.api';
+import { saveUserRolesApi } from './usuariosRoles.api';
 import { fetchRoles } from './roles.api';
 
-const API_URL = 'http://localhost:3000/api/usuarios';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const API_URL = `${API_BASE_URL}/usuarios`;
 
 let localUsuarios = [
   { id: 1, nombre: 'Juan Carlos Gómez', email: 'admin@vrfsystems.cl', telefono: '+56 9 1234 5678', foto_url: '/uploads/usuarios/admin_avatar.png', activo: true, debe_cambiar_password: false, roles: [{ id: 1, nombre: 'ADMINISTRADOR' }, { id: 3, nombre: 'SUPERVISOR' }], creado_en: new Date().toISOString() },

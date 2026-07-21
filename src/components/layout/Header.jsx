@@ -1,11 +1,13 @@
 import React from 'react';
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+
 export default function Header({ title, subtitle, userSession, onOpenProfile, onLogout }) {
   const usuario = userSession?.usuario || {};
   const userName = usuario?.nombre || 'Administrador VRF';
   const roles = usuario?.roles || [{ nombre: 'ADMINISTRADOR' }];
   const fotoUrl = usuario?.foto_url;
-  const fullFotoUrl = fotoUrl && fotoUrl.startsWith('/') ? `http://localhost:3000${fotoUrl}` : fotoUrl;
+  const fullFotoUrl = fotoUrl && fotoUrl.startsWith('/') ? `${BACKEND_URL}${fotoUrl}` : fotoUrl;
 
   return (
     <header style={{
@@ -24,7 +26,6 @@ export default function Header({ title, subtitle, userSession, onOpenProfile, on
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-        {/* Botón de perfil interactivo al hacer clic en el usuario */}
         <button
           onClick={onOpenProfile}
           style={{
