@@ -50,7 +50,7 @@ export default function LoginPage({ onLoginSuccess }) {
       padding: '20px',
       background: 'radial-gradient(circle at 50% 30%, rgba(0, 198, 255, 0.1) 0%, transparent 60%), #0b1329'
     }}>
-      <div className="glass-panel" style={{ width: '100%', maxWidth: '420px', padding: '36px 32px' }}>
+      <div className="glass-panel" style={{ width: '100%', maxWidth: '440px', padding: '36px 32px' }}>
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
           <div style={{
             background: 'rgba(15, 25, 50, 0.7)',
@@ -62,20 +62,28 @@ export default function LoginPage({ onLoginSuccess }) {
             alignItems: 'center',
             gap: '10px',
             marginBottom: '16px',
-            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)'
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
+            width: '100%'
           }}>
             <div style={{
               background: '#ffffff',
               borderRadius: '10px',
-              padding: '8px 16px',
+              padding: '6px 8px',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center'
+              justifyContent: 'center',
+              width: '100%',
+              overflow: 'hidden'
             }}>
               <img
                 src={logoImg}
                 alt="VRF Systems"
-                style={{ maxHeight: '42px', width: 'auto', objectFit: 'contain' }}
+                style={{
+                  width: '100%',
+                  height: '76px',
+                  objectFit: 'contain',
+                  transform: 'scale(1.2)'
+                }}
               />
             </div>
             <span style={{
@@ -84,7 +92,7 @@ export default function LoginPage({ onLoginSuccess }) {
               letterSpacing: '0.14em',
               fontWeight: 700,
               textTransform: 'uppercase',
-              textShadow: '0 0 8px rgba(0, 198, 255, 0.3)'
+              textShadow: '0 0 8px rgba(0, 198, 255, 0.4)'
             }}>
               SUPPORT MANAGEMENT
             </span>

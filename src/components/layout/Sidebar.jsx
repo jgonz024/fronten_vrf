@@ -22,40 +22,46 @@ export default function Sidebar({ activeTab, setActiveTab }) {
         background: 'rgba(15, 25, 50, 0.7)',
         borderRadius: 'var(--radius-sm)',
         border: '1px solid rgba(0, 198, 255, 0.15)',
-        padding: '12px 14px',
+        padding: '10px 10px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: '10px',
+        gap: '8px',
         boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)'
       }}>
-        {/* Logo Badge ajustado con bordes suaves */}
+        {/* Logo Badge Prominente */}
         <div style={{
           background: '#ffffff',
           borderRadius: '8px',
-          padding: '6px 12px',
+          padding: '4px 4px',
           width: '100%',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
+          overflow: 'hidden',
           boxShadow: '0 2px 10px rgba(0, 0, 0, 0.2)'
         }}>
           <img
             src={logoImg}
             alt="VRF Systems"
-            style={{ maxHeight: '36px', width: 'auto', objectFit: 'contain' }}
+            style={{
+              width: '100%',
+              height: '64px',
+              objectFit: 'contain',
+              transform: 'scale(1.25)'
+            }}
           />
         </div>
 
         {/* Subtítulo Estilizado en Cyan Neón */}
         <div style={{
-          fontSize: '10px',
+          fontSize: '11px',
           color: 'var(--accent-cyan)',
           letterSpacing: '0.14em',
           fontWeight: 700,
           textTransform: 'uppercase',
           textAlign: 'center',
-          textShadow: '0 0 8px rgba(0, 198, 255, 0.3)'
+          textShadow: '0 0 8px rgba(0, 198, 255, 0.4)'
         }}>
           SUPPORT MANAGEMENT
         </div>
