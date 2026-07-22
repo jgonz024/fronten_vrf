@@ -73,10 +73,24 @@ export default function ClienteAdd({ onSave, onCancel }) {
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingBottom: '14px',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+        gap: '12px'
       }}>
-        <h3 style={{ fontSize: '15px', color: '#ffffff', margin: 0 }}>🏢 Crear Nuevo Cliente</h3>
-        <button type="button" onClick={onCancel} className="btn btn-secondary" style={{ padding: '6px 10px', fontSize: '12px' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--accent-cyan)', fontWeight: 700, letterSpacing: '0.1em' }}>
+            CREAR NUEVO CLIENTE
+          </div>
+          <h3 style={{ fontSize: '15px', color: '#ffffff', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            🏢 Agregar Cliente
+          </h3>
+        </div>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="btn btn-secondary"
+          style={{ padding: '6px 10px', fontSize: '12px' }}
+          title="Cerrar panel"
+        >
           ✕
         </button>
       </div>

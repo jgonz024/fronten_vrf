@@ -19,7 +19,6 @@ export default function UsuarioAdd({ onSave, onCancel }) {
       try {
         const data = await fetchRoles();
         setRolesList(data);
-        // Por defecto seleccionar el primer rol si existe
         if (data.length > 0) {
           setSelectedRoleIds([data[0].id]);
         }
@@ -62,23 +61,50 @@ export default function UsuarioAdd({ onSave, onCancel }) {
   };
 
   return (
-    <div className="glass-panel" style={{ padding: '28px', maxWidth: '640px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h3 style={{ fontSize: '18px', color: 'var(--text-primary)' }}>➕ Crear Nuevo Usuario</h3>
-        <button onClick={onCancel} className="btn btn-secondary" style={{ padding: '4px 10px', fontSize: '12px' }}>
-          ✕ Cancelar
+    <div className="glass-panel" style={{
+      padding: '24px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '20px',
+      border: '1px solid rgba(0, 198, 255, 0.3)',
+      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)'
+    }}>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingBottom: '14px',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+        gap: '12px'
+      }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--accent-cyan)', fontWeight: 700, letterSpacing: '0.1em' }}>
+            CREAR NUEVO USUARIO
+          </div>
+          <h3 style={{ fontSize: '15px', color: '#ffffff', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            ➕ Agregar Usuario
+          </h3>
+        </div>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="btn btn-secondary"
+          style={{ padding: '6px 10px', fontSize: '12px' }}
+          title="Cerrar panel"
+        >
+          ✕
         </button>
       </div>
 
       {error && (
-        <div style={{ padding: '10px 14px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: 'var(--radius-sm)', color: '#fca5a5', fontSize: '13px', marginBottom: '16px' }}>
+        <div style={{ padding: '10px 14px', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: 'var(--radius-sm)', color: '#fca5a5', fontSize: '12px' }}>
           ⚠️ {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label className="form-label">Nombre Completo *</label>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label" style={{ fontSize: '11px' }}>Nombre Completo *</label>
           <input
             type="text"
             className="form-input"
@@ -89,8 +115,8 @@ export default function UsuarioAdd({ onSave, onCancel }) {
           />
         </div>
 
-        <div className="form-group">
-          <label className="form-label">Correo Electrónico *</label>
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label" style={{ fontSize: '11px' }}>Correo Electrónico *</label>
           <input
             type="email"
             className="form-input"
@@ -101,8 +127,8 @@ export default function UsuarioAdd({ onSave, onCancel }) {
           />
         </div>
 
-        <div className="form-group">
-          <label className="form-label">Contraseña Inicial (Por defecto: Vrf12345)</label>
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label" style={{ fontSize: '11px' }}>Contraseña Inicial</label>
           <input
             type="password"
             className="form-input"
@@ -112,8 +138,8 @@ export default function UsuarioAdd({ onSave, onCancel }) {
           />
         </div>
 
-        <div className="form-group">
-          <label className="form-label">Teléfono de Contacto</label>
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label" style={{ fontSize: '11px' }}>Teléfono de Contacto</label>
           <input
             type="text"
             className="form-input"
@@ -123,68 +149,44 @@ export default function UsuarioAdd({ onSave, onCancel }) {
           />
         </div>
 
-        {/* Sección de Asignación Directa de Roles */}
-        <div className="form-group" style={{ marginTop: '20px' }}>
-          <label className="form-label" style={{ marginBottom: '8px' }}>
-            Roles del Usuario * (Puedes seleccionar múltiples)
-          </label>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: 'rgba(10, 18, 41, 0.6)', padding: '14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}>
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label" style={{ fontSize: '11px' }}>Roles del Usuario *</label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: 'rgba(10, 18, 41, 0.5)', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
             {rolesList.map(r => {
               const isChecked = selectedRoleIds.includes(r.id);
               return (
-                <label
-                  key={r.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    padding: '10px 14px',
-                    borderRadius: 'var(--radius-sm)',
-                    background: isChecked ? 'rgba(0, 198, 255, 0.12)' : 'rgba(255, 255, 255, 0.03)',
-                    border: isChecked ? '1px solid var(--accent-cyan)' : '1px solid var(--border-color)',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
+                <label key={r.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#ffffff', cursor: 'pointer' }}>
                   <input
                     type="checkbox"
                     checked={isChecked}
                     onChange={() => handleRoleToggle(r.id)}
-                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                    style={{ accentColor: 'var(--accent-cyan)' }}
                   />
-                  <div>
-                    <div style={{ fontWeight: 600, color: isChecked ? 'var(--accent-cyan)' : 'var(--text-primary)' }}>
-                      🔑 {r.nombre}
-                    </div>
-                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-                      {r.descripcion || 'Sin descripción'}
-                    </div>
-                  </div>
+                  <span>🔑 {r.nombre}</span>
                 </label>
               );
             })}
           </div>
         </div>
 
-        <div className="form-group" style={{ flexDirection: 'row', alignItems: 'center', gap: '10px', marginTop: '16px' }}>
-          <input
-            type="checkbox"
-            id="activo"
-            checked={formData.activo}
-            onChange={e => setFormData({ ...formData, activo: e.target.checked })}
-            style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-          />
-          <label htmlFor="activo" className="form-label" style={{ margin: 0, cursor: 'pointer' }}>
-            Usuario Activo en el Sistema
-          </label>
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label" style={{ fontSize: '11px' }}>Estado de Cuenta</label>
+          <select
+            className="form-input"
+            value={formData.activo ? 'true' : 'false'}
+            onChange={e => setFormData({ ...formData, activo: e.target.value === 'true' })}
+          >
+            <option value="true" style={{ background: '#0b1329' }}>Activa</option>
+            <option value="false" style={{ background: '#0b1329' }}>Inactiva</option>
+          </select>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
-          <button type="button" onClick={onCancel} className="btn btn-secondary">
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px', paddingTop: '14px', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
+          <button type="button" onClick={onCancel} className="btn btn-secondary" style={{ fontSize: '12px' }}>
             Cancelar
           </button>
-          <button type="submit" disabled={isSubmitting} className="btn btn-primary">
-            {isSubmitting ? 'Guardando...' : '💾 Crear Usuario y Asignar Roles'}
+          <button type="submit" disabled={isSubmitting} className="btn btn-primary" style={{ fontSize: '12px' }}>
+            {isSubmitting ? 'Guardando...' : '💾 Crear Usuario'}
           </button>
         </div>
       </form>
