@@ -18,6 +18,7 @@ export default function InformeOtModalView({ orden, onClose }) {
   const [selectedInforme, setSelectedInforme] = useState(null);
   const [reportImages, setReportImages] = useState([]);
   const [loadingImages, setLoadingImages] = useState(false);
+  const [lightboxImg, setLightboxImg] = useState(null); // URL de la imagen ampliada
   const [empresa, setEmpresa] = useState(null);
   const [error, setError] = useState('');
 
@@ -276,23 +277,31 @@ export default function InformeOtModalView({ orden, onClose }) {
                       ) : (
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '10px' }}>
                           {reportImages.map(img => (
-                            <a
+                            <div
                               key={img.id}
-                              href={formatFileUrl(img.url_imagen)}
-                              target="_blank"
-                              rel="noreferrer"
+                              onClick={() => setLightboxImg(formatFileUrl(img.url_imagen))}
                               style={{
                                 border: '1px solid rgba(255,255,255,0.12)',
                                 borderRadius: '8px', overflow: 'hidden',
-                                height: '95px', display: 'block', transition: 'transform 0.15s ease'
+                                height: '95px', display: 'block',
+                                cursor: 'zoom-in',
+                                transition: 'transform 0.15s ease, box-shadow 0.15s ease'
+                              }}
+                              onMouseEnter={e => {
+                                e.currentTarget.style.transform = 'scale(1.03)';
+                                e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,198,255,0.3)';
+                              }}
+                              onMouseLeave={e => {
+                                e.currentTarget.style.transform = 'scale(1)';
+                                e.currentTarget.style.boxShadow = 'none';
                               }}
                             >
                               <img
                                 src={formatFileUrl(img.url_imagen)}
                                 alt="Foto Informe"
-                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }}
                               />
-                            </a>
+                            </div>
                           ))}
                         </div>
                       )}
@@ -352,6 +361,76 @@ export default function InformeOtModalView({ orden, onClose }) {
           </button>
         </div>
       </div>
+
+      {/* ── LIGHTBOX de imagen ── */}
+      {lightboxImg && (
+        <div
+          onClick={() => setLightboxImg(null)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 999999,
+            background: 'rgba(0,0,0,0.88)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '32px',
+            animation: 'fadeIn 0.18s ease'
+          }}
+        >
+          <style>{`
+            @keyframes fadeIn { from { opacity:0; transform:scale(0.96); } to { opacity:1; transform:scale(1); } }
+          `}</style>
+
+          {/* Botón cerrar */}
+          <button
+            onClick={() => setLightboxImg(null)}
+            style={{
+              position: 'fixed', top: '20px', right: '24px',
+              zIndex: 1000000,
+              background: 'rgba(239,68,68,0.9)',
+              border: '1px solid rgba(239,68,68,0.6)',
+              color: '#fff', borderRadius: '50%',
+              width: '40px', height: '40px',
+              fontSize: '18px', fontWeight: 700,
+              cursor: 'pointer', display: 'flex',
+              alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 4px 16px rgba(239,68,68,0.5)',
+              transition: 'transform 0.15s ease'
+            }}
+            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.1)'}
+            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+            title="Cerrar imagen"
+          >
+            ✕
+          </button>
+
+          {/* Imagen ampliada */}
+          <img
+            src={lightboxImg}
+            alt="Imagen ampliada"
+            onClick={e => e.stopPropagation()}
+            style={{
+              maxWidth: '90vw',
+              maxHeight: '88vh',
+              objectFit: 'contain',
+              borderRadius: '10px',
+              boxShadow: '0 24px 64px rgba(0,0,0,0.8), 0 0 40px rgba(0,198,255,0.15)',
+              border: '1px solid rgba(255,255,255,0.12)',
+              cursor: 'default'
+            }}
+          />
+
+          {/* Indicador de clic afuera */}
+          <div style={{
+            position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)',
+            fontSize: '11px', color: 'rgba(255,255,255,0.4)',
+            pointerEvents: 'none'
+          }}>
+            Clic fuera de la imagen para cerrar
+          </div>
+        </div>
+      )}
     </div>
   );
 }
