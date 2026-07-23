@@ -4,6 +4,8 @@ import { fetchUsuarios } from '../../api/usuarios.api';
 import { fetchClientes } from '../../api/clientes.api';
 import { fetchTiposOt } from '../../api/tipoOt.api';
 import { fetchEstadosOt } from '../../api/estadosOt.api';
+import { fetchActivos } from '../../api/activo.api';
+import { fetchTiposActivo } from '../../api/tipoActivo.api';
 import OrdenTrabajoList from './OrdenTrabajoList';
 import OrdenTrabajoAdd from './OrdenTrabajoAdd';
 import OrdenTrabajoEdit from './OrdenTrabajoEdit';
@@ -14,6 +16,8 @@ export default function OrdenesTrabajosPage({ userSession }) {
   const [clientes, setClientes] = useState([]);
   const [tiposOt, setTiposOt] = useState([]);
   const [estadosOt, setEstadosOt] = useState([]);
+  const [activos, setActivos] = useState([]);
+  const [tiposActivo, setTiposActivo] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -33,19 +37,23 @@ export default function OrdenesTrabajosPage({ userSession }) {
     setLoading(true);
     setError('');
     try {
-      const [data, usersData, clientsData, tiposData, estadosData] = await Promise.all([
+      const [data, usersData, clientsData, tiposData, estadosData, activosData, tiposActivosData] = await Promise.all([
         fetchOrdenesTrabajo(isAdmin),
         fetchUsuarios(false), // only active dropdown items
         fetchClientes(false),
         fetchTiposOt(false),
-        fetchEstadosOt(false)
+        fetchEstadosOt(false),
+        fetchActivos(false).catch(() => []),
+        fetchTiposActivo(false).catch(() => [])
       ]);
       
-      setOrdenes(data);
-      setUsuarios(usersData);
-      setClientes(clientsData);
-      setTiposOt(tiposData);
-      setEstadosOt(estadosData);
+      setOrdenes(data || []);
+      setUsuarios(usersData || []);
+      setClientes(clientsData || []);
+      setTiposOt(tiposData || []);
+      setEstadosOt(estadosData || []);
+      setActivos(activosData || []);
+      setTiposActivo(tiposActivosData || []);
 
       if (selectedOrden) {
         const updated = data.find(o => o.id === selectedOrden.id);
@@ -149,6 +157,11 @@ export default function OrdenesTrabajosPage({ userSession }) {
         ordenes={displayOrdenes}
         isAdmin={isAdmin}
         selectedOrdenId={selectedOrden?.id}
+        clientes={clientes}
+        tiposOt={tiposOt}
+        estadosOt={estadosOt}
+        activos={activos}
+        tiposActivo={tiposActivo}
         onAddNew={handleStartAdd}
         onSelectOrden={handleSelectForEdit}
         onDelete={handleDelete}
