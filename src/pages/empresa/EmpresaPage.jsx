@@ -10,7 +10,7 @@ const formatFileUrl = (url) => {
   return `${BACKEND_URL}${url.startsWith('/') ? '' : '/'}${url}`;
 };
 
-export default function EmpresaPage({ userSession }) {
+export default function EmpresaPage({ userSession, onClose }) {
   const activeRoleName = (
     userSession?.activeRole?.nombre || 
     userSession?.usuario?.roles?.[0]?.nombre || 
@@ -172,9 +172,22 @@ export default function EmpresaPage({ userSession }) {
             </p>
           </div>
 
-          <span className="badge badge-active" style={{ fontSize: '10px', padding: '4px 8px' }}>
-            {empresaId ? 'Registro Único Estructurado' : 'Nuevo Registro'}
-          </span>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <span className="badge badge-active" style={{ fontSize: '10px', padding: '4px 8px' }}>
+              {empresaId ? 'Registro Único Estructurado' : 'Nuevo Registro'}
+            </span>
+            {onClose && (
+              <button
+                type="button"
+                onClick={onClose}
+                className="btn btn-secondary"
+                style={{ fontSize: '11px', padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                title="Cerrar vista"
+              >
+                ✕ Cerrar
+              </button>
+            )}
+          </div>
         </div>
 
         {error && (
@@ -299,7 +312,17 @@ export default function EmpresaPage({ userSession }) {
             </div>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+            {onClose && (
+              <button
+                type="button"
+                onClick={onClose}
+                className="btn btn-secondary"
+                style={{ fontSize: '12px', padding: '8px 16px' }}
+              >
+                ✕ Cerrar
+              </button>
+            )}
             <button
               type="submit"
               disabled={saving}

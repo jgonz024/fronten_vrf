@@ -164,7 +164,7 @@ export default function App() {
         onOpenProfile={() => setShowPerfilModal(true)}
         onLogout={handleLogout}
       >
-        {activeTab === 'empresa' && <EmpresaPage userSession={session} />}
+        {activeTab === 'empresa' && <EmpresaPage userSession={session} onClose={() => setActiveTab('ordenes_trabajo')} />}
         {activeTab === 'usuarios' && <UsuariosPage userSession={session} />}
         {activeTab === 'roles' && <RolesPage userSession={session} />}
         {activeTab === 'clientes' && <ClientesPage userSession={session} />}
