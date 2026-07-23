@@ -365,7 +365,7 @@ export default function InformeOtModalView({ orden, onClose }) {
       {/* ── LIGHTBOX de imagen ── */}
       {lightboxImg && (
         <div
-          onClick={() => setLightboxImg(null)}
+          onClick={e => { e.stopPropagation(); setLightboxImg(null); }}
           style={{
             position: 'fixed', inset: 0, zIndex: 999999,
             background: 'rgba(0,0,0,0.88)',
@@ -384,7 +384,7 @@ export default function InformeOtModalView({ orden, onClose }) {
 
           {/* Botón cerrar */}
           <button
-            onClick={() => setLightboxImg(null)}
+            onClick={e => { e.stopPropagation(); setLightboxImg(null); }}
             style={{
               position: 'fixed', top: '20px', right: '24px',
               zIndex: 1000000,
