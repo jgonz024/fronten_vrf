@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import InformeOtModalView from './InformeOtModalView';
+import { exportToExcel } from '../../utils/exportExcel';
 
 export default function OrdenTrabajoList({
   ordenes = [],
@@ -25,6 +26,14 @@ export default function OrdenTrabajoList({
   const [selectedTipoActivoId, setSelectedTipoActivoId] = useState('');
   const [selectedTipoOtId, setSelectedTipoOtId] = useState('');
   const [selectedEstadoId, setSelectedEstadoId] = useState('ALL'); // 'ALL' or estado ID
+
+  // --- PAGINATION STATE ---
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20); // 10, 20, 50, 100, 'ALL'
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedClienteId, selectedActivoId, selectedTipoActivoId, selectedTipoOtId, selectedEstadoId]);
 
   const formatDate = (dateStr) => {
     if (!dateStr) return 'Sin fecha';
@@ -79,13 +88,15 @@ export default function OrdenTrabajoList({
 
       // 5. Activo Filter
       if (selectedActivoId) {
-        const hasActivo = item.activos_asociados && item.activos_asociados.some(a => Number(a.id_activo) === Number(selectedActivoId));
+        const asociados = item.activos_asociados || [];
+        const hasActivo = asociados.some(a => Number(a.id_activo) === Number(selectedActivoId));
         if (!hasActivo) return false;
       }
 
       // 6. Tipo de Activo Filter
       if (selectedTipoActivoId) {
-        const hasTipoActivo = item.activos_asociados && item.activos_asociados.some(a => Number(a.id_tipo_activo) === Number(selectedTipoActivoId));
+        const asociados = item.activos_asociados || [];
+        const hasTipoActivo = asociados.some(a => Number(a.id_tipo_activo) === Number(selectedTipoActivoId));
         if (!hasTipoActivo) return false;
       }
 
@@ -93,26 +104,58 @@ export default function OrdenTrabajoList({
     });
   }, [ordenes, searchQuery, selectedClienteId, selectedTipoOtId, selectedEstadoId, selectedActivoId, selectedTipoActivoId]);
 
-  // Conteo de OTs por estado para las tarjetas superiores de agrupación
+  // Paginated Orders
+  const totalPages = pageSize === 'ALL' ? 1 : (Math.ceil(filteredOrdenes.length / Number(pageSize)) || 1);
+  const paginatedOrdenes = useMemo(() => {
+    if (pageSize === 'ALL') return filteredOrdenes;
+    const size = Number(pageSize);
+    const startIdx = (currentPage - 1) * size;
+    return filteredOrdenes.slice(startIdx, startIdx + size);
+  }, [filteredOrdenes, currentPage, pageSize]);
+
+  // --- COUNT PER ESTADO ---
   const estadoCounts = useMemo(() => {
     const counts = { ALL: ordenes.length };
-    estadosOt.forEach(e => {
-      counts[e.id] = ordenes.filter(o => Number(o.id_estado_ot) === Number(e.id)).length;
+    ordenes.forEach(item => {
+      if (item.id_estado_ot) {
+        counts[item.id_estado_ot] = (counts[item.id_estado_ot] || 0) + 1;
+      }
     });
     return counts;
-  }, [ordenes, estadosOt]);
+  }, [ordenes]);
 
-  const hasActiveFilters = Boolean(
-    searchQuery || selectedClienteId || selectedActivoId || selectedTipoActivoId || selectedTipoOtId || (selectedEstadoId !== 'ALL')
-  );
-
-  const resetFilters = () => {
+  const handleResetFilters = () => {
     setSearchQuery('');
     setSelectedClienteId('');
     setSelectedActivoId('');
     setSelectedTipoActivoId('');
     setSelectedTipoOtId('');
     setSelectedEstadoId('ALL');
+    setCurrentPage(1);
+  };
+
+  const hasActiveFilters = 
+    searchQuery.trim() !== '' || 
+    selectedClienteId !== '' || 
+    selectedActivoId !== '' || 
+    selectedTipoActivoId !== '' || 
+    selectedTipoOtId !== '' || 
+    selectedEstadoId !== 'ALL';
+
+  // Exportar a Excel (Datos filtrados)
+  const handleExportExcel = () => {
+    const headers = [
+      { label: 'ID OT', accessor: row => `#${row.id}` },
+      { label: 'Folio', accessor: row => row.folio || 'N/A' },
+      { label: 'Título Orden de Trabajo', accessor: row => row.titulo_ot || '' },
+      { label: 'Cliente', accessor: row => row.cliente_nombre || 'N/A' },
+      { label: 'Técnico Asignado', accessor: row => row.usuario_nombre || 'Sin asignar' },
+      { label: 'Tipo de OT', accessor: row => row.tipo_ot_nombre || 'N/A' },
+      { label: 'Estado OT', accessor: row => row.estado_ot_nombre || 'Activa' },
+      { label: 'Fecha Programación', accessor: row => formatDate(row.fecha_programacion) },
+      { label: 'Total Informes Técnicos', accessor: row => row.total_informes || 0 }
+    ];
+    exportToExcel('Ordenes_de_Trabajo_Filtradas', headers, filteredOrdenes);
   };
 
   return (
@@ -128,7 +171,17 @@ export default function OrdenTrabajoList({
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          {/* Botón Exportar a Excel */}
+          <button
+            onClick={handleExportExcel}
+            className="btn btn-secondary"
+            style={{ fontSize: '11px', padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            title="Exportar listado de OTs filtradas a Excel"
+          >
+            📊 Exportar Excel
+          </button>
+
           {/* Selector de Modo de Visualización */}
           <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', padding: '2px', border: '1px solid rgba(255,255,255,0.08)' }}>
             <button
@@ -333,7 +386,7 @@ export default function OrdenTrabajoList({
         {hasActiveFilters && (
           <div style={{ display: 'flex', alignItems: 'flex-end', height: '100%' }}>
             <button
-              onClick={resetFilters}
+              onClick={handleResetFilters}
               className="btn btn-secondary"
               style={{ fontSize: '10px', padding: '6px 10px', width: '100%' }}
             >
@@ -346,12 +399,12 @@ export default function OrdenTrabajoList({
       {/* VISTA EN MODO TARJETAS (CARDS) */}
       {displayMode === 'cards' ? (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '14px' }}>
-          {filteredOrdenes.length === 0 ? (
+          {paginatedOrdenes.length === 0 ? (
             <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '30px', color: 'var(--text-muted)', fontSize: '11px' }}>
               No se encontraron órdenes de trabajo que coincidan con los filtros aplicados.
             </div>
           ) : (
-            filteredOrdenes.map(item => {
+            paginatedOrdenes.map(item => {
               const isDeleted = item.eliminado;
               const isSelected = selectedOrdenId === item.id;
               const numInformes = item.total_informes || 0;
@@ -367,7 +420,7 @@ export default function OrdenTrabajoList({
                     padding: '14px',
                     display: 'flex',
                     flexDirection: 'column',
-                    justify: 'space-between',
+                    justifyContent: 'space-between',
                     gap: '10px',
                     cursor: 'pointer',
                     opacity: isDeleted ? 0.6 : 1,
@@ -419,25 +472,25 @@ export default function OrdenTrabajoList({
                           onClick={(e) => handleOpenReportsModal(e, item)}
                           style={{
                             background: 'rgba(6, 182, 212, 0.15)',
-                            border: '1px solid rgba(6, 182, 212, 0.35)',
+                            border: '1px solid rgba(6, 182, 212, 0.4)',
                             color: 'var(--accent-cyan)',
                             borderRadius: '4px',
                             padding: '3px 8px',
                             fontSize: '10px',
-                            fontWeight: 600,
+                            fontWeight: 700,
                             cursor: 'pointer'
                           }}
                         >
                           📄 {numInformes} {numInformes === 1 ? 'Informe' : 'Informes'}
                         </button>
                       ) : (
-                        <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Sin informes</span>
+                        <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Sin Informes</span>
                       )}
                     </div>
 
                     <div style={{ display: 'flex', gap: '4px' }} onClick={e => e.stopPropagation()}>
-                      <button onClick={() => onSelectOrden(item)} className="btn btn-secondary" style={{ padding: '3px 8px', fontSize: '10px' }}>
-                        ✏️ Editar
+                      <button onClick={() => onSelectOrden(item)} className="btn btn-secondary" style={{ padding: '3px 6px', fontSize: '10px' }}>
+                        ✏️
                       </button>
                       {isDeleted ? (
                         isAdmin && (
@@ -475,14 +528,14 @@ export default function OrdenTrabajoList({
               </tr>
             </thead>
             <tbody>
-              {filteredOrdenes.length === 0 ? (
+              {paginatedOrdenes.length === 0 ? (
                 <tr>
                   <td colSpan="9" style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)', fontSize: '11px' }}>
                     No se encontraron órdenes de trabajo que coincidan con los filtros aplicados.
                   </td>
                 </tr>
               ) : (
-                filteredOrdenes.map(item => {
+                paginatedOrdenes.map(item => {
                   const isDeleted = item.eliminado;
                   const isSelected = selectedOrdenId === item.id;
                   const numInformes = item.total_informes || 0;
@@ -494,43 +547,17 @@ export default function OrdenTrabajoList({
                       style={{
                         cursor: 'pointer',
                         opacity: isDeleted ? 0.55 : 1,
-                        background: isSelected
-                          ? 'rgba(0, 198, 255, 0.15)'
-                          : isDeleted ? 'rgba(239, 68, 68, 0.08)' : 'transparent',
+                        background: isSelected ? 'rgba(0, 198, 255, 0.12)' : 'transparent',
                         borderBottom: '1px solid rgba(255,255,255,0.04)',
                         transition: 'background 0.15s ease'
                       }}
                     >
-                      <td style={{ padding: '6px 6px' }}>
-                        <span style={{ fontWeight: 700, color: isDeleted ? '#f87171' : 'var(--accent-cyan)', fontSize: '11px' }}>
-                          #{item.id}
-                        </span>
-                      </td>
-                      <td style={{ padding: '6px 6px' }}>
-                        <span style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: '11px' }}>
-                          {item.folio || 'N/A'}
-                        </span>
-                      </td>
-                      <td style={{ padding: '6px 6px', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        <span style={{ color: 'var(--text-primary)', fontWeight: 500, fontSize: '11px' }}>
-                          {item.titulo_ot}
-                        </span>
-                      </td>
-                      <td style={{ padding: '6px 6px', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        <span style={{ fontSize: '11px', color: 'var(--text-primary)' }}>
-                          🏢 {item.cliente_nombre || 'N/A'}
-                        </span>
-                      </td>
-                      <td style={{ padding: '6px 6px', maxWidth: '130px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
-                          👤 {item.usuario_nombre || 'Sin asignar'}
-                        </span>
-                      </td>
-                      <td style={{ padding: '6px 6px', whiteSpace: 'nowrap' }}>
-                        <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
-                          📅 {formatDate(item.fecha_programacion)}
-                        </span>
-                      </td>
+                      <td style={{ padding: '6px 6px', fontWeight: 700, color: 'var(--accent-cyan)' }}>#{item.id}</td>
+                      <td style={{ padding: '6px 6px', color: 'var(--text-secondary)' }}>{item.folio || '-'}</td>
+                      <td style={{ padding: '6px 6px', fontWeight: 600, color: '#fff' }}>{item.titulo_ot}</td>
+                      <td style={{ padding: '6px 6px', color: 'var(--text-primary)' }}>{item.cliente_nombre || '-'}</td>
+                      <td style={{ padding: '6px 6px', color: 'var(--text-secondary)' }}>{item.usuario_nombre || 'Sin asignar'}</td>
+                      <td style={{ padding: '6px 6px', color: 'var(--text-secondary)' }}>{formatDate(item.fecha_programacion)}</td>
                       <td style={{ padding: '6px 6px' }}>
                         {numInformes > 0 ? (
                           <button
@@ -550,7 +577,7 @@ export default function OrdenTrabajoList({
                             }}
                             title="Ver informe(s) técnico(s)"
                           >
-                            📄 {numInformes} {numInformes === 1 ? 'Informe' : 'Informes'}
+                            📄 {numInformes}
                           </button>
                         ) : (
                           <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>0</span>
@@ -593,6 +620,54 @@ export default function OrdenTrabajoList({
           </table>
         </div>
       )}
+
+      {/* Paginación Configurable */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', fontSize: '12px', color: 'var(--text-secondary)', flexWrap: 'wrap', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span>Mostrar por página:</span>
+          <select
+            className="form-input"
+            style={{ fontSize: '11px', padding: '4px 8px', width: 'auto' }}
+            value={pageSize}
+            onChange={e => {
+              setPageSize(e.target.value === 'ALL' ? 'ALL' : Number(e.target.value));
+              setCurrentPage(1);
+            }}
+          >
+            <option value="10">10 por página</option>
+            <option value="20">20 por página</option>
+            <option value="50">50 por página</option>
+            <option value="100">100 por página</option>
+            <option value="ALL">Todas las filas ({filteredOrdenes.length})</option>
+          </select>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span>
+            Página {currentPage} de {totalPages} ({filteredOrdenes.length} registros)
+          </span>
+          {pageSize !== 'ALL' && (
+            <div style={{ display: 'flex', gap: '6px' }}>
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="btn btn-secondary"
+                style={{ padding: '4px 10px', fontSize: '11px' }}
+              >
+                ← Anterior
+              </button>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage >= totalPages}
+                className="btn btn-secondary"
+                style={{ padding: '4px 10px', fontSize: '11px' }}
+              >
+                Siguiente →
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Modal de Previsualización de Informes Técnicos */}
       {reportModalOrden && (

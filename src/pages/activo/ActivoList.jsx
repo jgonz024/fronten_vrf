@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import ActivoBatchQrModal from './ActivoBatchQrModal';
+import { exportToExcel } from '../../utils/exportExcel';
 
 export default function ActivoList({
   activos,
@@ -30,7 +31,7 @@ export default function ActivoList({
   const [selectedEstado, setSelectedEstado] = useState('');
   
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 20;
+  const [pageSize, setPageSize] = useState(20); // 10, 20, 50, 100, 'ALL'
 
   // Conteo de activos por categoría
   const getCategoriaCounts = () => {
@@ -49,59 +50,60 @@ export default function ActivoList({
   const categoriaCounts = getCategoriaCounts();
 
   // Filtrado acumulable (AND)
-  const filteredActivos = activos.filter(item => {
-    // 1. Buscador de texto libre
-    if (searchTerm.trim()) {
-      const term = searchTerm.toLowerCase();
-      const matchesSearch = 
-        (item.id_identificador || '').toLowerCase().includes(term) ||
-        (item.modelo_ui || '').toLowerCase().includes(term) ||
-        (item.modelo_ue || '').toLowerCase().includes(term) ||
-        (item.serie_ui || '').toLowerCase().includes(term) ||
-        (item.serie_ue || '').toLowerCase().includes(term) ||
-        (item.codigo_qr || '').toLowerCase().includes(term) ||
-        (item.cliente_nombre || '').toLowerCase().includes(term) ||
-        (item.direccion_texto || '').toLowerCase().includes(term);
-      if (!matchesSearch) return false;
-    }
-
-    // 2. Filtro categoría
-    if (selectedCategoriaId !== '') {
-      if (Number(item.id_categoria_activo) !== Number(selectedCategoriaId)) {
-        return false;
+  const filteredActivos = useMemo(() => {
+    return activos.filter(item => {
+      // 1. Buscador de texto libre
+      if (searchTerm.trim()) {
+        const term = searchTerm.toLowerCase();
+        const matchesSearch = 
+          (item.id_identificador || '').toLowerCase().includes(term) ||
+          (item.modelo_ui || '').toLowerCase().includes(term) ||
+          (item.modelo_ue || '').toLowerCase().includes(term) ||
+          (item.serie_ui || '').toLowerCase().includes(term) ||
+          (item.serie_ue || '').toLowerCase().includes(term) ||
+          (item.codigo_qr || '').toLowerCase().includes(term) ||
+          (item.cliente_nombre || '').toLowerCase().includes(term) ||
+          (item.direccion_texto || '').toLowerCase().includes(term);
+        if (!matchesSearch) return false;
       }
-    }
 
-    // 3. Filtro cliente
-    if (selectedClienteId !== '') {
-      if (Number(item.id_cliente) !== Number(selectedClienteId)) {
-        return false;
+      // 2. Filtro categoría
+      if (selectedCategoriaId !== '') {
+        if (Number(item.id_categoria_activo) !== Number(selectedCategoriaId)) {
+          return false;
+        }
       }
-    }
 
-    // 4. Filtro marca
-    if (selectedMarcaId !== '') {
-      if (Number(item.id_marca_activo) !== Number(selectedMarcaId)) {
-        return false;
+      // 3. Filtro cliente
+      if (selectedClienteId !== '') {
+        if (Number(item.id_cliente) !== Number(selectedClienteId)) {
+          return false;
+        }
       }
-    }
 
-    // 5. Filtro tipo activo
-    if (selectedTipoId !== '') {
-      if (Number(item.id_tipo_activo) !== Number(selectedTipoId)) {
-        return false;
+      // 4. Filtro marca
+      if (selectedMarcaId !== '') {
+        if (Number(item.id_marca_activo) !== Number(selectedMarcaId)) {
+          return false;
+        }
       }
-    }
 
-    // 6. Filtro estado operativo
-    if (selectedEstado !== '') {
-      if ((item.estado_activo || '').toLowerCase() !== selectedEstado.toLowerCase()) {
-        return false;
+      // 5. Filtro tipo activo
+      if (selectedTipoId !== '') {
+        if (Number(item.id_tipo_activo) !== Number(selectedTipoId)) {
+          return false;
+        }
       }
-    }
 
-    return true;
-  });
+      // 6. Filtro estado
+      if (selectedEstado !== '') {
+        if (selectedEstado === 'ELIMINADO' && !item.eliminado) return false;
+        if (selectedEstado === 'ACTIVO' && item.eliminado) return false;
+      }
+
+      return true;
+    });
+  }, [activos, searchTerm, selectedCategoriaId, selectedClienteId, selectedMarcaId, selectedTipoId, selectedEstado]);
 
   const handleResetFilters = () => {
     setSearchTerm('');
@@ -121,12 +123,13 @@ export default function ActivoList({
     selectedTipoId !== '' || 
     selectedEstado !== '';
 
-  // Emojis según categoría de activo
   const getCategoryEmoji = (name) => {
-    const n = (name || '').toLowerCase();
-    if (n.includes('climatizac')) return '❄️';
-    if (n.includes('ventilac')) return '💨';
-    if (n.includes('refrigerac')) return '🧊';
+    if (!name) return '📦';
+    const n = name.toLowerCase();
+    if (n.includes('clima') || n.includes('aire')) return '❄️';
+    if (n.includes('electric') || n.includes('energ')) return '⚡';
+    if (n.includes('hidraul') || n.includes('agua')) return '💧';
+    if (n.includes('seguridad') || n.includes('cámara')) return '🛡️';
     if (n.includes('conexio')) return '🔌';
     return '📦';
   };
@@ -134,10 +137,33 @@ export default function ActivoList({
   // Categoría seleccionada
   const activeCategoria = categories.find(c => String(c.id) === String(selectedCategoriaId));
 
-  // Paginación Modo Lista
-  const totalPages = Math.ceil(filteredActivos.length / pageSize) || 1;
-  const startIdx = (currentPage - 1) * pageSize;
-  const currentListItems = filteredActivos.slice(startIdx, startIdx + pageSize);
+  // Paginación
+  const totalPages = pageSize === 'ALL' ? 1 : (Math.ceil(filteredActivos.length / Number(pageSize)) || 1);
+  const currentListItems = useMemo(() => {
+    if (pageSize === 'ALL') return filteredActivos;
+    const size = Number(pageSize);
+    const startIdx = (currentPage - 1) * size;
+    return filteredActivos.slice(startIdx, startIdx + size);
+  }, [filteredActivos, currentPage, pageSize]);
+
+  // Exportar a Excel (Datos filtrados)
+  const handleExportExcel = () => {
+    const headers = [
+      { label: 'ID Activo', accessor: row => `#${row.id}` },
+      { label: 'Código / Identificador', accessor: row => row.id_identificador || 'N/A' },
+      { label: 'Categoría', accessor: row => row.categoria_activo_nombre || 'N/A' },
+      { label: 'Tipo de Activo', accessor: row => row.tipo_activo_nombre || 'N/A' },
+      { label: 'Marca', accessor: row => row.marca_activo_nombre || 'N/A' },
+      { label: 'Modelo UI', accessor: row => row.modelo_ui || 'N/A' },
+      { label: 'Modelo UE', accessor: row => row.modelo_ue || 'N/A' },
+      { label: 'Serie UI', accessor: row => row.serie_ui || 'N/A' },
+      { label: 'Serie UE', accessor: row => row.serie_ue || 'N/A' },
+      { label: 'Cliente', accessor: row => row.cliente_nombre || 'N/A' },
+      { label: 'Ubicación / Área', accessor: row => row.direccion_texto || 'N/A' },
+      { label: 'Estado', accessor: row => row.eliminado ? 'Eliminado' : (row.estado_activo || 'Operativo') }
+    ];
+    exportToExcel('Activos_Equipos_Filtrados', headers, filteredActivos);
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -150,11 +176,21 @@ export default function ActivoList({
             <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '4px 0 0 0' }}>
               {selectedCategoriaId === '' && displayMode === 'cards'
                 ? 'Selecciona una categoría de activo para explorar sus equipos'
-                : `Mostrando ${filteredActivos.length} activos`}
+                : `Mostrando ${filteredActivos.length} activo(s)`}
             </p>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            {/* Botón Exportar a Excel */}
+            <button
+              onClick={handleExportExcel}
+              className="btn btn-secondary"
+              style={{ fontSize: '12px', padding: '7px 14px', display: 'flex', alignItems: 'center', gap: '6px' }}
+              title="Exportar listado filtrado a Excel"
+            >
+              📊 Exportar Excel
+            </button>
+
             {/* Selector Modo Visualización */}
             <div style={{ display: 'flex', background: 'rgba(10, 18, 41, 0.7)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', padding: '2px' }}>
               <button
@@ -772,28 +808,51 @@ export default function ActivoList({
             </table>
           </div>
 
-          {/* Paginación */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', fontSize: '13px', color: 'var(--text-secondary)' }}>
-            <div>
-              Página {currentPage} de {totalPages}
+          {/* Paginación Configurable */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', fontSize: '12px', color: 'var(--text-secondary)', flexWrap: 'wrap', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>Mostrar por página:</span>
+              <select
+                className="form-input"
+                style={{ fontSize: '11px', padding: '4px 8px', width: 'auto' }}
+                value={pageSize}
+                onChange={e => {
+                  setPageSize(e.target.value === 'ALL' ? 'ALL' : Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+              >
+                <option value="10">10 por página</option>
+                <option value="20">20 por página</option>
+                <option value="50">50 por página</option>
+                <option value="100">100 por página</option>
+                <option value="ALL">Todas las filas ({filteredActivos.length})</option>
+              </select>
             </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-                className="btn btn-secondary"
-                style={{ padding: '6px 12px', fontSize: '12px' }}
-              >
-                ← Anterior
-              </button>
-              <button
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
-                className="btn btn-secondary"
-                style={{ padding: '6px 12px', fontSize: '12px' }}
-              >
-                Siguiente →
-              </button>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span>
+                Página {currentPage} de {totalPages} ({filteredActivos.length} registros)
+              </span>
+              {pageSize !== 'ALL' && (
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="btn btn-secondary"
+                    style={{ padding: '4px 10px', fontSize: '11px' }}
+                  >
+                    ← Anterior
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage >= totalPages}
+                    className="btn btn-secondary"
+                    style={{ padding: '4px 10px', fontSize: '11px' }}
+                  >
+                    Siguiente →
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

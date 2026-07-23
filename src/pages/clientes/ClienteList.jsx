@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { exportToExcel } from '../../utils/exportExcel';
 
 export default function ClienteList({ clientes, tipos, categorias, isAdmin, selectedClienteId, onAddNew, onSelectCliente, onDelete, onRestore }) {
   const [displayMode, setDisplayMode] = useState('cards'); // 'cards' | 'list'
@@ -9,7 +10,7 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, sele
   const [selectedTipoId, setSelectedTipoId] = useState('');
   
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 20;
+  const [pageSize, setPageSize] = useState(20); // 10, 20, 50, 100, 'ALL'
 
   // Conteo de clientes por categoría para las Tarjetas Resumen de Categorías
   const getCategoriaCounts = () => {
@@ -28,39 +29,41 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, sele
   const categoriaCounts = getCategoriaCounts();
 
   // Filtrado acumulable (AND) para la lista / tarjetas de clientes
-  const filteredClientes = clientes.filter(c => {
-    // 1. Buscador de texto acumulable
-    if (searchTerm.trim()) {
-      const term = searchTerm.toLowerCase();
-      const matchText = (
-        (c.cliente && c.cliente.toLowerCase().includes(term)) ||
-        (c.contacto && c.contacto.toLowerCase().includes(term)) ||
-        (c.email && c.email.toLowerCase().includes(term)) ||
-        (c.rut && c.rut.toLowerCase().includes(term)) ||
-        (c.telefono && c.telefono.toLowerCase().includes(term)) ||
-        (c.idcliente && c.idcliente.toLowerCase().includes(term)) ||
-        (c.n_cliente && c.n_cliente.toLowerCase().includes(term)) ||
-        (c.cliente_padre_nombre && c.cliente_padre_nombre.toLowerCase().includes(term))
-      );
-      if (!matchText) return false;
-    }
-
-    // 2. Filtro por Marca / Categoría
-    if (selectedCategoriaId !== '') {
-      if (Number(c.id_categoria_cliente) !== Number(selectedCategoriaId)) {
-        return false;
+  const filteredClientes = useMemo(() => {
+    return clientes.filter(c => {
+      // 1. Buscador de texto acumulable
+      if (searchTerm.trim()) {
+        const term = searchTerm.toLowerCase();
+        const matchText = (
+          (c.cliente && c.cliente.toLowerCase().includes(term)) ||
+          (c.contacto && c.contacto.toLowerCase().includes(term)) ||
+          (c.email && c.email.toLowerCase().includes(term)) ||
+          (c.rut && c.rut.toLowerCase().includes(term)) ||
+          (c.telefono && c.telefono.toLowerCase().includes(term)) ||
+          (c.idcliente && c.idcliente.toLowerCase().includes(term)) ||
+          (c.n_cliente && c.n_cliente.toLowerCase().includes(term)) ||
+          (c.cliente_padre_nombre && c.cliente_padre_nombre.toLowerCase().includes(term))
+        );
+        if (!matchText) return false;
       }
-    }
 
-    // 3. Filtro por Tipo de Cliente
-    if (selectedTipoId !== '') {
-      if (Number(c.id_tipo_cliente) !== Number(selectedTipoId)) {
-        return false;
+      // 2. Filtro por Marca / Categoría
+      if (selectedCategoriaId !== '') {
+        if (Number(c.id_categoria_cliente) !== Number(selectedCategoriaId)) {
+          return false;
+        }
       }
-    }
 
-    return true;
-  });
+      // 3. Filtro por Tipo de Cliente
+      if (selectedTipoId !== '') {
+        if (Number(c.id_tipo_cliente) !== Number(selectedTipoId)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [clientes, searchTerm, selectedCategoriaId, selectedTipoId]);
 
   const handleResetFilters = () => {
     setSearchTerm('');
@@ -74,10 +77,31 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, sele
   // Categoría actualmente seleccionada
   const activeCategoria = categorias.find(c => String(c.id) === String(selectedCategoriaId));
 
-  // Paginación para Modo Lista
-  const totalPages = Math.ceil(filteredClientes.length / pageSize) || 1;
-  const startIdx = (currentPage - 1) * pageSize;
-  const currentListItems = filteredClientes.slice(startIdx, startIdx + pageSize);
+  // Paginación
+  const totalPages = pageSize === 'ALL' ? 1 : (Math.ceil(filteredClientes.length / Number(pageSize)) || 1);
+  const currentListItems = useMemo(() => {
+    if (pageSize === 'ALL') return filteredClientes;
+    const size = Number(pageSize);
+    const startIdx = (currentPage - 1) * size;
+    return filteredClientes.slice(startIdx, startIdx + size);
+  }, [filteredClientes, currentPage, pageSize]);
+
+  // Exportar a Excel (Datos filtrados)
+  const handleExportExcel = () => {
+    const headers = [
+      { label: 'ID', accessor: row => `#${row.id}` },
+      { label: 'Cliente', accessor: row => row.cliente || '' },
+      { label: 'RUT', accessor: row => row.rut || 'N/A' },
+      { label: 'Razón Social', accessor: row => row.razon_social || 'N/A' },
+      { label: 'Tipo de Cliente', accessor: row => row.tipo_cliente_nombre || 'N/A' },
+      { label: 'Categoría', accessor: row => row.categoria_cliente_nombre || 'N/A' },
+      { label: 'Contacto', accessor: row => row.contacto || 'N/A' },
+      { label: 'Teléfono', accessor: row => row.telefono || 'N/A' },
+      { label: 'Email', accessor: row => row.email || 'N/A' },
+      { label: 'Estado', accessor: row => row.eliminado ? 'Eliminado' : 'Activo' }
+    ];
+    exportToExcel('Clientes_Filtrados', headers, filteredClientes);
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -89,11 +113,21 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, sele
             <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '4px 0 0 0' }}>
               {selectedCategoriaId === '' && displayMode === 'cards'
                 ? 'Selecciona una categoría de marca para explorar sus clientes'
-                : `Mostrando ${filteredClientes.length} clientes`}
+                : `Mostrando ${filteredClientes.length} cliente(s)`}
             </p>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            {/* Botón Exportar a Excel */}
+            <button
+              onClick={handleExportExcel}
+              className="btn btn-secondary"
+              style={{ fontSize: '12px', padding: '7px 14px', display: 'flex', alignItems: 'center', gap: '6px' }}
+              title="Exportar listado filtrado a Excel"
+            >
+              📊 Exportar Excel
+            </button>
+
             {/* Toggle Modo de Visualización (Tarjetas vs Lista) */}
             <div style={{ display: 'flex', background: 'rgba(10, 18, 41, 0.7)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', padding: '2px' }}>
               <button
@@ -537,28 +571,51 @@ export default function ClienteList({ clientes, tipos, categorias, isAdmin, sele
             </table>
           </div>
 
-          {/* Paginación Modo Lista */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', fontSize: '13px', color: 'var(--text-secondary)' }}>
-            <div>
-              Página {currentPage} de {totalPages}
+          {/* Paginación Modo Lista Configurable */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', fontSize: '12px', color: 'var(--text-secondary)', flexWrap: 'wrap', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>Mostrar por página:</span>
+              <select
+                className="form-input"
+                style={{ fontSize: '11px', padding: '4px 8px', width: 'auto' }}
+                value={pageSize}
+                onChange={e => {
+                  setPageSize(e.target.value === 'ALL' ? 'ALL' : Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+              >
+                <option value="10">10 por página</option>
+                <option value="20">20 por página</option>
+                <option value="50">50 por página</option>
+                <option value="100">100 por página</option>
+                <option value="ALL">Todas las filas ({filteredClientes.length})</option>
+              </select>
             </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-                className="btn btn-secondary"
-                style={{ padding: '6px 12px', fontSize: '12px' }}
-              >
-                ← Anterior
-              </button>
-              <button
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
-                className="btn btn-secondary"
-                style={{ padding: '6px 12px', fontSize: '12px' }}
-              >
-                Siguiente →
-              </button>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span>
+                Página {currentPage} de {totalPages} ({filteredClientes.length} registros)
+              </span>
+              {pageSize !== 'ALL' && (
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="btn btn-secondary"
+                    style={{ padding: '4px 10px', fontSize: '11px' }}
+                  >
+                    ← Anterior
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage >= totalPages}
+                    className="btn btn-secondary"
+                    style={{ padding: '4px 10px', fontSize: '11px' }}
+                  >
+                    Siguiente →
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
