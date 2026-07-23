@@ -26,6 +26,7 @@ export default function EmpresaPage({ userSession, onClose }) {
     direccion: '',
     giro: '',
     telefono_contacto: '',
+    email: '',
     logo_url: ''
   });
 
@@ -64,6 +65,7 @@ export default function EmpresaPage({ userSession, onClose }) {
           direccion: data.direccion || '',
           giro: data.giro || '',
           telefono_contacto: data.telefono_contacto || '',
+          email: data.email || '',
           logo_url: data.logo_url || '/uploads/empresa/logo/logo.png'
         });
       } else {
@@ -133,6 +135,7 @@ export default function EmpresaPage({ userSession, onClose }) {
         direccion: saved.direccion || '',
         giro: saved.giro || '',
         telefono_contacto: saved.telefono_contacto || '',
+        email: saved.email || '',
         logo_url: saved.logo_url || '/uploads/empresa/logo/logo.png'
       });
       setLogoFile(null);
@@ -231,22 +234,10 @@ export default function EmpresaPage({ userSession, onClose }) {
             </div>
           </div>
 
+          {/* Teléfono + Email de Contacto */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
-            {/* Giro */}
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label" style={{ fontSize: '11px' }}>Giro Comercial</label>
-              <input
-                type="text"
-                className="form-input"
-                value={formData.giro}
-                onChange={e => setFormData({ ...formData, giro: e.target.value })}
-                placeholder="Ej. Climatización, Calefacción y Servicios Técnicos"
-              />
-            </div>
-
-            {/* Teléfono de Contacto */}
-            <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label" style={{ fontSize: '11px' }}>Teléfono de Contacto</label>
+              <label className="form-label" style={{ fontSize: '11px' }}>📞 Teléfono de Contacto</label>
               <input
                 type="text"
                 className="form-input"
@@ -255,11 +246,34 @@ export default function EmpresaPage({ userSession, onClose }) {
                 placeholder="Ej. +56 9 1234 5678"
               />
             </div>
+
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label" style={{ fontSize: '11px' }}>✉️ Email de Contacto</label>
+              <input
+                type="email"
+                className="form-input"
+                value={formData.email}
+                onChange={e => setFormData({ ...formData, email: e.target.value })}
+                placeholder="Ej. contacto@vrfsystems.cl"
+              />
+            </div>
+          </div>
+
+          {/* Giro Comercial */}
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label className="form-label" style={{ fontSize: '11px' }}>🏭 Giro Comercial</label>
+            <input
+              type="text"
+              className="form-input"
+              value={formData.giro}
+              onChange={e => setFormData({ ...formData, giro: e.target.value })}
+              placeholder="Ej. Climatización, Calefacción y Servicios Técnicos"
+            />
           </div>
 
           {/* Dirección */}
           <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label" style={{ fontSize: '11px' }}>Dirección Matriz / Oficina</label>
+            <label className="form-label" style={{ fontSize: '11px' }}>📍 Dirección Matriz / Oficina</label>
             <input
               type="text"
               className="form-input"

@@ -31,6 +31,7 @@ export async function exportInformeOtPdf({ informe, orden, reportImages = [], em
   const rutEmpresa = empresa?.rut ? `RUT: ${empresa.rut}` : 'Servicios y Mantenciones Técnicas Especializadas';
   const direccionEmpresa = empresa?.direccion || '';
   const telefonoEmpresa = empresa?.telefono_contacto ? `Tel: ${empresa.telefono_contacto}` : '';
+  const emailEmpresa = empresa?.email ? `Email: ${empresa.email}` : '';
   const giroEmpresa = empresa?.giro || '';
 
   const fechaInforme = informe.fecha_hora
@@ -225,9 +226,11 @@ export async function exportInformeOtPdf({ informe, orden, reportImages = [], em
             <div>
               <div class="brand-title">${razonSocial}</div>
               <div class="brand-sub">${rutEmpresa} ${giroEmpresa ? '— ' + giroEmpresa : ''}</div>
-              ${(direccionEmpresa || telefonoEmpresa) ? `
+              ${(direccionEmpresa || telefonoEmpresa || emailEmpresa) ? `
                 <div style="font-size: 8pt; color: #64748b; margin-top: 2px;">
-                  ${direccionEmpresa} ${telefonoEmpresa ? '| ' + telefonoEmpresa : ''}
+                  ${direccionEmpresa ? direccionEmpresa + (telefonoEmpresa || emailEmpresa ? ' | ' : '') : ''}
+                  ${telefonoEmpresa ? telefonoEmpresa + (emailEmpresa ? ' | ' : '') : ''}
+                  ${emailEmpresa}
                 </div>
               ` : ''}
             </div>
@@ -308,7 +311,7 @@ export async function exportInformeOtPdf({ informe, orden, reportImages = [], em
           </div>
         ` : ''}
 
-        <!-- FIRMAS DE CONFORMIDAD -->
+        <!-- FIRMAS DE CONFORMIDAD + PIE DE EMPRESA -->
         <div class="footer-signatures">
           <div class="signature-box">
             <strong>${informe.tecnico_nombre || 'Técnico Responsable'}</strong><br />
@@ -318,6 +321,14 @@ export async function exportInformeOtPdf({ informe, orden, reportImages = [], em
             <strong>${orden.cliente_nombre || 'Cliente / Receptor'}</strong><br />
             Firma Conformidad Cliente
           </div>
+        </div>
+
+        <!-- PIE DE PÁGINA EMPRESA -->
+        <div style="margin-top: 24px; padding-top: 10px; border-top: 1px solid #cbd5e1; display: flex; justify-content: center; gap: 28px; font-size: 8pt; color: #64748b; text-align: center;">
+          ${razonSocial ? `<span><strong>${razonSocial}</strong></span>` : ''}
+          ${telefonoEmpresa ? `<span>📞 ${empresa?.telefono_contacto || ''}</span>` : ''}
+          ${emailEmpresa ? `<span>✉ ${empresa?.email || ''}</span>` : ''}
+          ${direccionEmpresa ? `<span>📍 ${direccionEmpresa}</span>` : ''}
         </div>
 
         <script>
