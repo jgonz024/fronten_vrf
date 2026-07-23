@@ -234,28 +234,18 @@ export default function UsuarioAdd({ onSave, onCancel }) {
           </div>
         </div>
 
-        {/* Teléfono + Contraseña */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-          <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label" style={{ fontSize: '11px' }}>📞 Teléfono</label>
-            <input
-              type="text"
-              className="form-input"
-              placeholder="+56 9 1234 5678"
-              value={formData.telefono}
-              onChange={e => setFormData({ ...formData, telefono: e.target.value })}
-            />
-          </div>
-          <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label" style={{ fontSize: '11px' }}>🔒 Contraseña Inicial</label>
-            <input
-              type="password"
-              className="form-input"
-              placeholder="••••••••"
-              value={formData.password}
-              onChange={e => setFormData({ ...formData, password: e.target.value })}
-            />
-          </div>
+        {/* Teléfono */}
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label" style={{ fontSize: '11px' }}>📞 Teléfono</label>
+          <input
+            type="text"
+            className="form-input"
+            placeholder="+56 9 1234 5678"
+            value={formData.telefono}
+            onChange={e => setFormData({ ...formData, telefono: e.target.value })}
+          />
+          {/* Campo contraseña oculto — el backend asigna la contraseña por defecto */}
+          <input type="hidden" value={formData.password} readOnly />
         </div>
 
         {/* Roles */}
