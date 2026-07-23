@@ -152,10 +152,12 @@ export default function EmpresaPage({ userSession }) {
     );
   }
 
-  // Resolver la URL de la imagen actual a mostrar
+  // Resolver la URL de la imagen actual a mostrar con fallback garantizado a logoImg
   const displayLogoSrc = logoFile
     ? URL.createObjectURL(logoFile)
-    : (formData.logo_url ? formatFileUrl(formData.logo_url) : logoImg);
+    : (formData.logo_url && formData.logo_url !== '/uploads/empresa/logo/logo.png'
+       ? `${formatFileUrl(formData.logo_url)}?v=${Date.now()}`
+       : logoImg);
 
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto' }}>
@@ -287,6 +289,10 @@ export default function EmpresaPage({ userSession }) {
                 <img
                   src={displayLogoSrc}
                   alt="Logo Empresa"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = logoImg;
+                  }}
                   style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }}
                 />
               </div>
