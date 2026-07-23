@@ -13,6 +13,7 @@ import { fetchImagenesOt, createImagenOt, deleteImagenOt } from '../../api/image
 import { fetchMensajesOt, createMensajeOt } from '../../api/mensajesOt.api';
 import { fetchInformesOt, createInformeOt, updateInformeOt, deleteInformeOt } from '../../api/informeOt.api';
 import { fetchImagenesInformeOt, createImagenInformeOt, deleteImagenInformeOt } from '../../api/imagenesInformeOt.api';
+import { exportInformeOtPdf } from '../../utils/exportInformePdf';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -752,6 +753,19 @@ export default function OrdenTrabajoEdit({ orden, usuarios, clientes, tiposOt, e
                       </div>
                       <div style={{ display: 'flex', gap: '6px' }}>
                         <button
+                          type="button"
+                          onClick={async () => {
+                            const imgs = await fetchImagenesInformeOt(rep.id).catch(() => []);
+                            exportInformeOtPdf({ informe: rep, orden, reportImages: imgs });
+                          }}
+                          className="btn btn-primary"
+                          style={{ fontSize: '10px', padding: '3px 8px' }}
+                          title="Exportar informe en PDF"
+                        >
+                          📄 PDF
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => handleEditReport(rep)}
                           className="btn btn-secondary"
                           style={{ fontSize: '10px', padding: '3px 8px' }}
@@ -759,6 +773,7 @@ export default function OrdenTrabajoEdit({ orden, usuarios, clientes, tiposOt, e
                           ✏️ Editar
                         </button>
                         <button
+                          type="button"
                           onClick={() => handleDeleteReport(rep.id)}
                           className="btn btn-danger"
                           style={{ fontSize: '10px', padding: '3px 8px' }}

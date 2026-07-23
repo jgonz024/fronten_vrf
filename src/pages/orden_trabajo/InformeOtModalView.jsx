@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { fetchInformesOt } from '../../api/informeOt.api';
 import { fetchImagenesInformeOt } from '../../api/imagenesInformeOt.api';
+import { exportInformeOtPdf } from '../../utils/exportInformePdf';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -194,18 +195,27 @@ export default function InformeOtModalView({ orden, onClose }) {
               <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 {selectedInforme && (
                   <>
-                    <div style={{ background: 'rgba(255,255,255,0.03)', padding: '14px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.08)' }}>
-                      <div style={{ fontSize: '15px', fontWeight: 700, color: '#fff', marginBottom: '6px' }}>
-                        {selectedInforme.titulo}
-                      </div>
-                      <div style={{ fontSize: '11px', color: 'var(--accent-cyan)', marginBottom: '4px' }}>
-                        👤 Redactado por: <strong>{selectedInforme.tecnico_nombre || 'No especificado'}</strong>
-                      </div>
-                      {selectedInforme.fecha_hora && (
-                        <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>
-                          📅 Fecha: {new Date(selectedInforme.fecha_hora).toLocaleString()}
+                    <div style={{ background: 'rgba(255,255,255,0.03)', padding: '14px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '10px' }}>
+                      <div>
+                        <div style={{ fontSize: '15px', fontWeight: 700, color: '#fff', marginBottom: '6px' }}>
+                          {selectedInforme.titulo}
                         </div>
-                      )}
+                        <div style={{ fontSize: '11px', color: 'var(--accent-cyan)', marginBottom: '4px' }}>
+                          👤 Redactado por: <strong>{selectedInforme.tecnico_nombre || 'No especificado'}</strong>
+                        </div>
+                        {selectedInforme.fecha_hora && (
+                          <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>
+                            📅 Fecha: {new Date(selectedInforme.fecha_hora).toLocaleString()}
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => exportInformeOtPdf({ informe: selectedInforme, orden, reportImages })}
+                        className="btn btn-primary"
+                        style={{ fontSize: '11px', padding: '6px 12px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                      >
+                        📄 Generar PDF
+                      </button>
                     </div>
 
                     <div style={{ background: 'rgba(255,255,255,0.03)', padding: '14px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.08)' }}>
