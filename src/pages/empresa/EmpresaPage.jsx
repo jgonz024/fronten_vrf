@@ -9,7 +9,15 @@ const formatFileUrl = (url) => {
   return `${BACKEND_URL}${url.startsWith('/') ? '' : '/'}${url}`;
 };
 
-export default function EmpresaPage() {
+export default function EmpresaPage({ userSession }) {
+  const activeRoleName = (
+    userSession?.activeRole?.nombre || 
+    userSession?.usuario?.roles?.[0]?.nombre || 
+    ''
+  ).toUpperCase().trim();
+
+  const isAdmin = !activeRoleName || activeRoleName === 'ADMINISTRADOR' || activeRoleName === 'ADMIN';
+
   const [empresaId, setEmpresaId] = useState(null);
   const [formData, setFormData] = useState({
     rut: '',
@@ -27,8 +35,20 @@ export default function EmpresaPage() {
   const [successMsg, setSuccessMsg] = useState('');
 
   useEffect(() => {
-    loadEmpresaData();
-  }, []);
+    if (isAdmin) {
+      loadEmpresaData();
+    } else {
+      setLoading(false);
+    }
+  }, [isAdmin]);
+
+  if (!isAdmin) {
+    return (
+      <div className="glass-panel" style={{ padding: '30px', textAlign: 'center', color: '#fca5a5', fontSize: '13px' }}>
+        ⚠️ Acceso denegado. Solo los usuarios con el rol <strong>ADMINISTRADOR</strong> tienen permiso para acceder a la configuración de la empresa.
+      </div>
+    );
+  }
 
   const loadEmpresaData = async () => {
     setLoading(true);
