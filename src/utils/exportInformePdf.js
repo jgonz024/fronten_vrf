@@ -1,4 +1,5 @@
 import logoImg from '../assets/images/logo.png';
+import { fetchEmpresa } from '../api/empresa.api';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -8,8 +9,13 @@ const formatFileUrl = (url) => {
   return `${BACKEND_URL}${url.startsWith('/') ? '' : '/'}${url}`;
 };
 
-export function exportInformeOtPdf({ informe, orden, reportImages = [] }) {
+export async function exportInformeOtPdf({ informe, orden, reportImages = [], empresaData = null }) {
   if (!informe || !orden) return;
+
+  let empresa = empresaData;
+  if (!empresa) {
+    empresa = await fetchEmpresa().catch(() => null);
+  }
 
   const printWindow = window.open('', '_blank', 'width=900,height=1000');
   if (!printWindow) {
@@ -17,9 +23,15 @@ export function exportInformeOtPdf({ informe, orden, reportImages = [] }) {
     return;
   }
 
-  const logoUrl = logoImg.startsWith('http') || logoImg.startsWith('data:')
-    ? logoImg
-    : `${window.location.origin}${logoImg.startsWith('/') ? '' : '/'}${logoImg}`;
+  const logoUrl = empresa && empresa.logo_url
+    ? formatFileUrl(empresa.logo_url)
+    : (logoImg.startsWith('http') || logoImg.startsWith('data:') ? logoImg : `${window.location.origin}${logoImg.startsWith('/') ? '' : '/'}${logoImg}`);
+
+  const razonSocial = empresa?.razon_social || 'VRF SYSTEMS';
+  const rutEmpresa = empresa?.rut ? `RUT: ${empresa.rut}` : 'Servicios y Mantenciones Técnicas Especializadas';
+  const direccionEmpresa = empresa?.direccion || '';
+  const telefonoEmpresa = empresa?.telefono_contacto ? `Tel: ${empresa.telefono_contacto}` : '';
+  const giroEmpresa = empresa?.giro || '';
 
   const fechaInforme = informe.fecha_hora
     ? new Date(informe.fecha_hora).toLocaleDateString()
@@ -66,20 +78,19 @@ export function exportInformeOtPdf({ informe, orden, reportImages = [] }) {
             gap: 12px;
           }
           .brand img {
-            max-height: 55px;
+            max-height: 60px;
+            max-width: 160px;
             object-fit: contain;
           }
           .brand-title {
-            font-size: 18pt;
+            font-size: 16pt;
             font-weight: 800;
             color: #0f172a;
             letter-spacing: 0.5px;
           }
           .brand-sub {
             font-size: 8.5pt;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            color: #475569;
           }
           .document-badge {
             text-align: right;
@@ -210,10 +221,15 @@ export function exportInformeOtPdf({ informe, orden, reportImages = [] }) {
         <!-- CABECERA DE LA EMPRESA Y DOCUMENTO -->
         <div class="header">
           <div class="brand">
-            <img src="${logoUrl}" alt="VRF Systems" />
+            <img src="${logoUrl}" alt="${razonSocial}" />
             <div>
-              <div class="brand-title">VRF SYSTEMS</div>
-              <div class="brand-sub">Servicios y Mantenciones Técnicas Especializadas</div>
+              <div class="brand-title">${razonSocial}</div>
+              <div class="brand-sub">${rutEmpresa} ${giroEmpresa ? '— ' + giroEmpresa : ''}</div>
+              ${(direccionEmpresa || telefonoEmpresa) ? `
+                <div style="font-size: 8pt; color: #64748b; margin-top: 2px;">
+                  ${direccionEmpresa} ${telefonoEmpresa ? '| ' + telefonoEmpresa : ''}
+                </div>
+              ` : ''}
             </div>
           </div>
           <div class="document-badge">

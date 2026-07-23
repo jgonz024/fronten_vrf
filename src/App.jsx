@@ -18,6 +18,7 @@ import TipoOtsPage from './pages/tipo_ot/TipoOtsPage';
 import EstadosOtsPage from './pages/estados_ot/EstadosOtsPage';
 import OrdenesTrabajosPage from './pages/orden_trabajo/OrdenesTrabajosPage';
 import AdminOtPage from './pages/admin_ot/AdminOtPage';
+import EmpresaPage from './pages/empresa/EmpresaPage';
 
 const SESSION_KEY = import.meta.env.VITE_SESSION_STORAGE_KEY;
 
@@ -163,6 +164,7 @@ export default function App() {
         onOpenProfile={() => setShowPerfilModal(true)}
         onLogout={handleLogout}
       >
+        {activeTab === 'empresa' && <EmpresaPage userSession={session} />}
         {activeTab === 'usuarios' && <UsuariosPage userSession={session} />}
         {activeTab === 'roles' && <RolesPage userSession={session} />}
         {activeTab === 'clientes' && <ClientesPage userSession={session} />}

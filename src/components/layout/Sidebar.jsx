@@ -37,6 +37,7 @@ export default function Sidebar({ activeTab, setActiveTab, userSession }) {
     {
       title: 'Administración',
       items: [
+        { id: 'empresa', label: 'Datos Empresa', icon: '🏢', subtitle: 'Información oficial y logo' },
         { id: 'usuarios', label: 'Usuarios', icon: '👤', subtitle: 'Cuentas, perfiles y roles' },
         { id: 'roles', label: 'Roles', icon: '🔑', subtitle: 'Definición de permisos' },
       ]
@@ -66,7 +67,7 @@ export default function Sidebar({ activeTab, setActiveTab, userSession }) {
   const sections = rawSections.map(sec => {
     let allowedIds = [];
     if (sec.title === 'Administración') {
-      if (isAdmin) allowedIds = ['usuarios', 'roles'];
+      if (isAdmin) allowedIds = ['empresa', 'usuarios', 'roles'];
     } else if (sec.title === 'Clientes y Activos') {
       if (isAdmin) {
         allowedIds = ['clientes', 'tipo_cliente', 'categoria_cliente', 'categoria_activo', 'tipo_activo', 'marca_activo', 'activos'];
