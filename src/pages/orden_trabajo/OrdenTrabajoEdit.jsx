@@ -11,7 +11,7 @@ import { fetchTecnicosOt, createTecnicoOt, deleteTecnicoOt } from '../../api/tec
 import { fetchComentariosOt, createComentarioOt, deleteComentarioOt } from '../../api/comentariosOt.api';
 import { fetchImagenesOt, createImagenOt, deleteImagenOt } from '../../api/imagenesOt.api';
 import { fetchMensajesOt, createMensajeOt } from '../../api/mensajesOt.api';
-import { fetchInformesOt, createInformeOt, updateInformeOt } from '../../api/informeOt.api';
+import { fetchInformesOt, createInformeOt, updateInformeOt, deleteInformeOt } from '../../api/informeOt.api';
 import { fetchImagenesInformeOt, createImagenInformeOt, deleteImagenInformeOt } from '../../api/imagenesInformeOt.api';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -47,10 +47,12 @@ export default function OrdenTrabajoEdit({ orden, usuarios, clientes, tiposOt, e
   const [otComments, setOtComments] = useState([]);
   const [otMessages, setOtMessages] = useState([]);
   
-  // Technical Report State
-  const [report, setReport] = useState(null);
-  const [reportForm, setReportForm] = useState({ titulo: '', resumen: '', id_tecnico: '' });
-  const [reportImages, setReportImages] = useState([]);
+  // Technical Report Mantenedor State
+  const [otReports, setOtReports] = useState([]);
+  const [reportForm, setReportForm] = useState({ id: null, titulo: '', resumen: '', id_tecnico: '' });
+  const [isReportFormOpen, setIsReportFormOpen] = useState(false);
+  const [pendingReportFiles, setPendingReportFiles] = useState([]);
+  const [editingReportImages, setEditingReportImages] = useState([]);
 
   // Sub-tab Form Inputs
   const [selectedAssetId, setSelectedAssetId] = useState('');
@@ -139,23 +141,7 @@ export default function OrdenTrabajoEdit({ orden, usuarios, clientes, tiposOt, e
       setOtPauses(pauses);
       setOtComments(comments);
       setOtMessages(msgs);
-
-      // Handle technical report
-      if (reports && reports.length > 0) {
-        const rep = reports[0];
-        setReport(rep);
-        setReportForm({
-          titulo: rep.titulo || '',
-          resumen: rep.resumen || '',
-          id_tecnico: rep.id_tecnico || ''
-        });
-        const repImgs = await fetchImagenesInformeOt(rep.id);
-        setReportImages(repImgs);
-      } else {
-        setReport(null);
-        setReportForm({ titulo: '', resumen: '', id_tecnico: '' });
-        setReportImages([]);
-      }
+      setOtReports(reports || []);
 
     } catch (err) {
       console.error('Error al cargar datos complementarios de OT:', err);
@@ -247,41 +233,88 @@ export default function OrdenTrabajoEdit({ orden, usuarios, clientes, tiposOt, e
     }
   };
 
-  // Technical Report
+  // Technical Report Handlers (CRUD & Multi-File Upload)
+  const handleStartNewReport = () => {
+    setReportForm({ id: null, titulo: '', resumen: '', id_tecnico: '' });
+    setPendingReportFiles([]);
+    setEditingReportImages([]);
+    setIsReportFormOpen(true);
+  };
+
+  const handleEditReport = async (rep) => {
+    setReportForm({
+      id: rep.id,
+      titulo: rep.titulo || '',
+      resumen: rep.resumen || '',
+      id_tecnico: rep.id_tecnico || ''
+    });
+    setPendingReportFiles([]);
+    try {
+      const imgs = await fetchImagenesInformeOt(rep.id);
+      setEditingReportImages(imgs || []);
+    } catch (err) {
+      console.error('Error al cargar imágenes del informe:', err);
+      setEditingReportImages([]);
+    }
+    setIsReportFormOpen(true);
+  };
+
+  const handleDeleteReport = async (id) => {
+    if (window.confirm('¿Eliminar este informe técnico?')) {
+      try {
+        await deleteInformeOt(id);
+        await loadSubTabData();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+  };
+
   const handleSaveReport = async (e) => {
     e.preventDefault();
     try {
-      if (report) {
-        await updateInformeOt(report.id, { id_ot: orden.id, ...reportForm });
+      let savedReport;
+      if (reportForm.id) {
+        savedReport = await updateInformeOt(reportForm.id, { id_ot: orden.id, ...reportForm });
       } else {
-        await createInformeOt({ id_ot: orden.id, ...reportForm });
+        savedReport = await createInformeOt({ id_ot: orden.id, ...reportForm });
       }
+
+      const targetReportId = savedReport?.id || reportForm.id;
+
+      // Subir imágenes seleccionadas si las hay
+      if (pendingReportFiles.length > 0 && targetReportId) {
+        for (const file of pendingReportFiles) {
+          const url = await handleFileUpload(file, 'imagen_informe');
+          await createImagenInformeOt({
+            id_informe: targetReportId,
+            url_imagen: url
+          });
+        }
+      }
+
       alert('Informe técnico guardado correctamente');
+      setIsReportFormOpen(false);
+      setPendingReportFiles([]);
+      setReportForm({ id: null, titulo: '', resumen: '', id_tecnico: '' });
       await loadSubTabData();
     } catch (err) {
       alert(err.message);
     }
   };
 
-  const handleUploadReportImage = async () => {
-    if (!reportImageFile || !report) return;
-    try {
-      const url = await handleFileUpload(reportImageFile, 'imagen_informe');
-      await createImagenInformeOt({
-        id_informe: report.id,
-        url_imagen: url
-      });
-      setReportImageFile(null);
-      await loadSubTabData();
-    } catch (err) {
-      alert(err.message);
-    }
+  const handleRemovePendingFile = (index) => {
+    setPendingReportFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleRemoveReportImage = async (id) => {
-    if (window.confirm('¿Eliminar esta imagen del informe?')) {
-      await deleteImagenInformeOt(id);
-      await loadSubTabData();
+  const handleRemoveSavedImage = async (imageId) => {
+    if (window.confirm('¿Eliminar esta foto del informe?')) {
+      try {
+        await deleteImagenInformeOt(imageId);
+        setEditingReportImages(prev => prev.filter(img => img.id !== imageId));
+      } catch (err) {
+        alert(err.message);
+      }
     }
   };
 
@@ -666,44 +699,213 @@ export default function OrdenTrabajoEdit({ orden, usuarios, clientes, tiposOt, e
         </div>
       )}
 
-      {/* 4. INFORME TÉCNICO */}
+      {/* 4. INFORME TÉCNICO MANTENEDOR */}
       {activeSubTab === 'informe' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <form onSubmit={handleSaveReport} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label" style={{ fontSize: '11px' }}>Título del Informe</label>
-              <input type="text" className="form-input" value={reportForm.titulo} onChange={e => setReportForm({ ...reportForm, titulo: e.target.value })} required placeholder="Ej. Informe de Mantención Preventiva" />
-            </div>
-            <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label" style={{ fontSize: '11px' }}>Técnico Redactor</label>
-              <TecnicoSearchPicker
-                value={reportForm.id_tecnico}
-                onChange={val => setReportForm({ ...reportForm, id_tecnico: val })}
-                placeholder="🔍 Buscar técnico por nombre..."
-              />
-            </div>
-            <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label" style={{ fontSize: '11px' }}>Resumen / Conclusión Técnica</label>
-              <textarea className="form-input" rows="3" value={reportForm.resumen} onChange={e => setReportForm({ ...reportForm, resumen: e.target.value })} placeholder="Detalles de los hallazgos técnicos..." />
-            </div>
-            <button type="submit" className="btn btn-primary" style={{ fontSize: '12px' }}>💾 Guardar Informe</button>
-          </form>
-
-          {report && (
-            <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '12px' }}>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-cyan)', marginBottom: '8px' }}>FOTOS DEL INFORME TÉCNICO</div>
-              <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
-                <input type="file" accept="image/*" onChange={e => setReportImageFile(e.target.files[0])} style={{ fontSize: '11px', color: 'var(--text-secondary)' }} />
-                <button onClick={handleUploadReportImage} className="btn btn-secondary" style={{ fontSize: '11px', padding: '4px 8px' }}>Subir Foto</button>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', maxHeight: '160px', overflowY: 'auto' }}>
-                {reportImages.map(img => (
-                  <div key={img.id} style={{ position: 'relative', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 'var(--radius-sm)', overflow: 'hidden', height: '60px' }}>
-                    <img src={formatFileUrl(img.url_imagen)} alt="Reporte" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    <button onClick={() => handleRemoveReportImage(img.id)} style={{ position: 'absolute', top: 2, right: 2, background: 'rgba(239, 68, 68, 0.85)', border: 'none', color: '#fff', borderRadius: '50%', width: '16px', height: '16px', fontSize: '9px', cursor: 'pointer' }}>✕</button>
+          {!isReportFormOpen ? (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <div>
+                  <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--accent-cyan)' }}>
+                    INFORMES TÉCNICOS DE LA OT ({otReports.length})
                   </div>
-                ))}
+                  <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>
+                    Puedes generar y gestionar múltiples informes técnicos para esta Orden de Trabajo.
+                  </div>
+                </div>
+                <button onClick={handleStartNewReport} className="btn btn-primary" style={{ fontSize: '11px', padding: '4px 10px' }}>
+                  + Crear Informe Técnico
+                </button>
               </div>
+
+              {otReports.length === 0 ? (
+                <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '11px', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                  No hay informes técnicos registrados para esta OT. Haz clic en "+ Crear Informe Técnico".
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '350px', overflowY: 'auto' }}>
+                  {otReports.map((rep, idx) => (
+                    <div
+                      key={rep.id}
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.03)',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        borderRadius: 'var(--radius-sm)',
+                        padding: '10px 12px',
+                        display: 'flex',
+                        justify: 'space-between',
+                        alignItems: 'center'
+                      }}
+                    >
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', maxWidth: '75%' }}>
+                        <div style={{ fontSize: '12px', fontWeight: 700, color: '#fff' }}>
+                          #{idx + 1}. {rep.titulo}
+                        </div>
+                        <div style={{ fontSize: '10px', color: 'var(--accent-cyan)' }}>
+                          👤 Redactó: {rep.tecnico_nombre || `Técnico #${rep.id_tecnico || 'N/A'}`}
+                        </div>
+                        {rep.resumen && (
+                          <div style={{ fontSize: '11px', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {rep.resumen}
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <button
+                          onClick={() => handleEditReport(rep)}
+                          className="btn btn-secondary"
+                          style={{ fontSize: '10px', padding: '3px 8px' }}
+                        >
+                          ✏️ Editar
+                        </button>
+                        <button
+                          onClick={() => handleDeleteReport(rep.id)}
+                          className="btn btn-danger"
+                          style={{ fontSize: '10px', padding: '3px 8px' }}
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div style={{ background: 'rgba(255,255,255,0.02)', padding: '14px', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--accent-cyan)' }}>
+                  {reportForm.id ? '✏️ EDITAR INFORME TÉCNICO' : '📄 NUEVO INFORME TÉCNICO'}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsReportFormOpen(false)}
+                  className="btn btn-secondary"
+                  style={{ fontSize: '10px', padding: '2px 6px' }}
+                >
+                  ✕ Volver a la lista
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveReport} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label" style={{ fontSize: '11px' }}>Título del Informe *</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={reportForm.titulo}
+                    onChange={e => setReportForm({ ...reportForm, titulo: e.target.value })}
+                    required
+                    placeholder="Ej. Mantención Preventiva VRF / Diagnóstico de Fuga"
+                  />
+                </div>
+
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label" style={{ fontSize: '11px' }}>Técnico Redactor</label>
+                  <TecnicoSearchPicker
+                    value={reportForm.id_tecnico}
+                    onChange={val => setReportForm({ ...reportForm, id_tecnico: val })}
+                    placeholder="🔍 Buscar técnico redactor..."
+                  />
+                </div>
+
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label" style={{ fontSize: '11px' }}>Resumen / Conclusión Técnica</label>
+                  <textarea
+                    className="form-input"
+                    rows="3"
+                    value={reportForm.resumen}
+                    onChange={e => setReportForm({ ...reportForm, resumen: e.target.value })}
+                    placeholder="Detalles de inspección, repuestos cambiados, diagnósticos..."
+                  />
+                </div>
+
+                {/* Sección de Fotografías Adjuntas (Pre-Carga y Guardadas) */}
+                <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '10px' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-cyan)', marginBottom: '4px' }}>
+                    FOTOGRAFÍAS DEL INFORME TÉCNICO
+                  </div>
+                  <p style={{ fontSize: '10px', color: 'var(--text-muted)', margin: '0 0 8px 0' }}>
+                    Puedes seleccionar una o múltiples fotos. Se guardarán en el servidor al presionar "Guardar Informe".
+                  </p>
+
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={e => {
+                      if (e.target.files && e.target.files.length > 0) {
+                        setPendingReportFiles(prev => [...prev, ...Array.from(e.target.files)]);
+                      }
+                    }}
+                    style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '10px' }}
+                  />
+
+                  {/* Vista Previa de Imágenes Pendientes (Antes de Guardar) */}
+                  {pendingReportFiles.length > 0 && (
+                    <div style={{ marginBottom: '10px' }}>
+                      <div style={{ fontSize: '10px', fontWeight: 600, color: '#facc15', marginBottom: '6px' }}>
+                        📷 Fotos Seleccionadas ({pendingReportFiles.length}):
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(70px, 1fr))', gap: '6px' }}>
+                        {pendingReportFiles.map((file, idx) => (
+                          <div key={idx} style={{ position: 'relative', border: '1px dashed #facc15', borderRadius: '4px', height: '55px', overflow: 'hidden' }}>
+                            <img src={URL.createObjectURL(file)} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <button
+                              type="button"
+                              onClick={() => handleRemovePendingFile(idx)}
+                              style={{ position: 'absolute', top: 2, right: 2, background: 'rgba(239, 68, 68, 0.85)', border: 'none', color: '#fff', borderRadius: '50%', width: '16px', height: '16px', fontSize: '9px', cursor: 'pointer' }}
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Fotos ya guardadas en servidor (Modo Edición) */}
+                  {editingReportImages.length > 0 && (
+                    <div>
+                      <div style={{ fontSize: '10px', fontWeight: 600, color: 'var(--accent-cyan)', marginBottom: '6px' }}>
+                        🖼️ Fotos Guardadas en Servidor ({editingReportImages.length}):
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(70px, 1fr))', gap: '6px' }}>
+                        {editingReportImages.map(img => (
+                          <div key={img.id} style={{ position: 'relative', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', height: '55px', overflow: 'hidden' }}>
+                            <img src={formatFileUrl(img.url_imagen)} alt="Guardada" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveSavedImage(img.id)}
+                              style={{ position: 'absolute', top: 2, right: 2, background: 'rgba(239, 68, 68, 0.85)', border: 'none', color: '#fff', borderRadius: '50%', width: '16px', height: '16px', fontSize: '9px', cursor: 'pointer' }}
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setIsReportFormOpen(false)}
+                    className="btn btn-secondary"
+                    style={{ fontSize: '11px', padding: '6px 12px' }}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    style={{ fontSize: '11px', padding: '6px 14px' }}
+                  >
+                    💾 Guardar Informe Técnico
+                  </button>
+                </div>
+              </form>
             </div>
           )}
         </div>
