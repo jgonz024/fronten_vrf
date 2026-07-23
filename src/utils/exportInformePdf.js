@@ -198,9 +198,11 @@ export async function exportInformeOtPdf({ informe, orden, reportImages = [], em
           }
           .image-card img {
             width: 100%;
-            height: 180px;
-            object-fit: cover;
+            height: auto;
+            max-height: 320px;
+            object-fit: contain;
             border-radius: 4px;
+            display: block;
           }
           .footer-signatures {
             margin-top: 30px;
