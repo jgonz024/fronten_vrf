@@ -16,6 +16,12 @@ import { fetchImagenesInformeOt, createImagenInformeOt, deleteImagenInformeOt } 
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
+const formatFileUrl = (url) => {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('blob:')) return url;
+  return `${BACKEND_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+};
+
 export default function OrdenTrabajoEdit({ orden, usuarios, clientes, tiposOt, estadosOt, isAdmin, onSave, onDelete, onRestore, onCancel }) {
   const [activeSubTab, setActiveSubTab] = useState('general'); // 'general' | 'activos' | 'tecnicos' | 'informe' | 'multimedia' | 'gastos' | 'bitacora'
 
@@ -693,7 +699,7 @@ export default function OrdenTrabajoEdit({ orden, usuarios, clientes, tiposOt, e
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', maxHeight: '160px', overflowY: 'auto' }}>
                 {reportImages.map(img => (
                   <div key={img.id} style={{ position: 'relative', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 'var(--radius-sm)', overflow: 'hidden', height: '60px' }}>
-                    <img src={img.url_imagen} alt="Reporte" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={formatFileUrl(img.url_imagen)} alt="Reporte" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     <button onClick={() => handleRemoveReportImage(img.id)} style={{ position: 'absolute', top: 2, right: 2, background: 'rgba(239, 68, 68, 0.85)', border: 'none', color: '#fff', borderRadius: '50%', width: '16px', height: '16px', fontSize: '9px', cursor: 'pointer' }}>✕</button>
                   </div>
                 ))}
@@ -719,7 +725,7 @@ export default function OrdenTrabajoEdit({ orden, usuarios, clientes, tiposOt, e
             <div style={{ maxHeight: '100px', overflowY: 'auto' }}>
               {otDocs.map(d => (
                 <div key={d.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.03)', padding: '6px 8px', borderRadius: 'var(--radius-sm)', marginBottom: '4px', fontSize: '12px' }}>
-                  <a href={d.url_archivo} target="_blank" rel="noreferrer" style={{ color: 'var(--accent-cyan)' }}>📄 {d.nombre_adjunto}</a>
+                  <a href={formatFileUrl(d.url_archivo)} target="_blank" rel="noreferrer" style={{ color: 'var(--accent-cyan)' }}>📄 {d.nombre_adjunto}</a>
                   <button onClick={() => handleRemoveDoc(d.id)} className="btn btn-danger" style={{ padding: '2px 6px', fontSize: '9px' }}>✕</button>
                 </div>
               ))}
@@ -736,7 +742,7 @@ export default function OrdenTrabajoEdit({ orden, usuarios, clientes, tiposOt, e
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', maxHeight: '160px', overflowY: 'auto' }}>
               {otImages.map(img => (
                 <div key={img.id} style={{ position: 'relative', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 'var(--radius-sm)', overflow: 'hidden', height: '60px' }}>
-                  <img src={img.url_imagen} alt="OT" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={formatFileUrl(img.url_imagen)} alt="OT" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   <button onClick={() => handleRemoveImage(img.id)} style={{ position: 'absolute', top: 2, right: 2, background: 'rgba(239, 68, 68, 0.85)', border: 'none', color: '#fff', borderRadius: '50%', width: '16px', height: '16px', fontSize: '9px', cursor: 'pointer' }}>✕</button>
                 </div>
               ))}
