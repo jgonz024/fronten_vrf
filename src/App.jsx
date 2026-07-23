@@ -4,6 +4,7 @@ import LoginPage from './pages/auth/LoginPage';
 import CambiarPasswordModal from './pages/auth/CambiarPasswordModal';
 import PerfilModal from './pages/auth/PerfilModal';
 import SeleccionarRolModal from './pages/auth/SeleccionarRolModal';
+import DashboardPage from './pages/dashboard/DashboardPage';
 
 import UsuariosPage from './pages/usuarios/UsuariosPage';
 import RolesPage from './pages/roles/RolesPage';
@@ -23,7 +24,7 @@ import EmpresaPage from './pages/empresa/EmpresaPage';
 const SESSION_KEY = import.meta.env.VITE_SESSION_STORAGE_KEY;
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('ordenes_trabajo');
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [showPerfilModal, setShowPerfilModal] = useState(false);
   const [pendingAuth, setPendingAuth] = useState(null);
 
@@ -62,11 +63,11 @@ export default function App() {
       const isCliente = roleName === 'CLIENTE';
 
       if (isAdmin) {
-        setActiveTab('usuarios');
+        setActiveTab('dashboard');
       } else if (isCliente) {
         setActiveTab('activos');
       } else {
-        setActiveTab('ordenes_trabajo');
+        setActiveTab('dashboard');
       }
 
       setSession(fullSession);
@@ -164,7 +165,8 @@ export default function App() {
         onOpenProfile={() => setShowPerfilModal(true)}
         onLogout={handleLogout}
       >
-        {activeTab === 'empresa' && <EmpresaPage userSession={session} onClose={() => setActiveTab('ordenes_trabajo')} />}
+        {activeTab === 'dashboard' && <DashboardPage userSession={session} onNavigate={setActiveTab} />}
+        {activeTab === 'empresa' && <EmpresaPage userSession={session} onClose={() => setActiveTab('dashboard')} />}
         {activeTab === 'usuarios' && <UsuariosPage userSession={session} />}
         {activeTab === 'roles' && <RolesPage userSession={session} />}
         {activeTab === 'clientes' && <ClientesPage userSession={session} />}

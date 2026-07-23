@@ -4,6 +4,7 @@ import Header from './Header';
 
 export default function MainLayout({ activeTab, setActiveTab, userSession, onChangeActiveRole, onOpenProfile, onLogout, children }) {
   const titles = {
+    dashboard: { title: 'Panel de Control', subtitle: 'Resumen ejecutivo y estadísticas en tiempo real del sistema' },
     usuarios: { title: 'Gestión de Usuarios', subtitle: 'Administración de cuentas, técnicos y credenciales' },
     roles: { title: 'Gestión de Roles', subtitle: 'Definición de perfiles y niveles de autorización' },
     usuarios_roles: { title: 'Asignación de Roles a Usuarios', subtitle: 'Matriz de asociación entre usuarios y múltiples perfiles' },

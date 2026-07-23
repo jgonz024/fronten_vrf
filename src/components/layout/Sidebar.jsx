@@ -26,6 +26,9 @@ export default function Sidebar({ activeTab, setActiveTab, userSession }) {
     };
   });
 
+  // Botón Dashboard (fuera de secciones colapsables)
+  const dashboardItem = { id: 'dashboard', label: 'Panel de Control', icon: '🏠', subtitle: 'Resumen y estadísticas' };
+
   const toggleSection = (title) => {
     setCollapsedSections(prev => ({
       ...prev,
@@ -147,6 +150,35 @@ export default function Sidebar({ activeTab, setActiveTab, userSession }) {
           SUPPORT MANAGEMENT
         </div>
       </div>
+
+      {/* Dashboard siempre visible */}
+      <button
+        onClick={() => setActiveTab('dashboard')}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          padding: '10px 12px',
+          borderRadius: 'var(--radius-sm)',
+          background: activeTab === 'dashboard'
+            ? 'linear-gradient(90deg, rgba(0,198,255,0.2), rgba(0,114,255,0.08))'
+            : 'rgba(0,198,255,0.06)',
+          border: activeTab === 'dashboard'
+            ? '1px solid rgba(0,198,255,0.5)'
+            : '1px solid rgba(0,198,255,0.2)',
+          color: activeTab === 'dashboard' ? '#ffffff' : 'var(--text-secondary)',
+          cursor: 'pointer',
+          textAlign: 'left',
+          width: '100%',
+          transition: 'all 0.2s ease'
+        }}
+      >
+        <span style={{ fontSize: '18px' }}>{dashboardItem.icon}</span>
+        <div>
+          <div style={{ fontWeight: activeTab === 'dashboard' ? 700 : 500, fontSize: '13px' }}>{dashboardItem.label}</div>
+          <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{dashboardItem.subtitle}</div>
+        </div>
+      </button>
 
       {/* Navigation */}
       <nav style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
