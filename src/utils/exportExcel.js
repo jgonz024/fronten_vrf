@@ -1,35 +1,43 @@
+import * as XLSX from 'xlsx';
+
 export function exportToExcel(filename, headers, rows) {
   if (!rows || rows.length === 0) {
     alert('No hay datos disponibles con los filtros aplicados para exportar.');
     return;
   }
 
-  const escapeCell = (val) => {
-    if (val === null || val === undefined) return '""';
-    const str = String(val).replace(/"/g, '""');
-    return `"${str}"`;
-  };
-
-  const headerLine = headers.map(h => escapeCell(h.label)).join(';');
-  const dataLines = rows.map(row => {
-    return headers.map(h => {
+  // Transformar dataset filtrado completo (ignorando paginación)
+  const data = rows.map(row => {
+    const obj = {};
+    headers.forEach(h => {
       try {
         const val = typeof h.accessor === 'function' ? h.accessor(row) : row[h.accessor];
-        return escapeCell(val);
+        obj[h.label] = val === null || val === undefined ? '' : val;
       } catch {
-        return '""';
+        obj[h.label] = '';
       }
-    }).join(';');
+    });
+    return obj;
   });
 
-  const csvContent = '\uFEFF' + [headerLine, ...dataLines].join('\r\n');
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  
-  const link = document.createElement('a');
-  link.setAttribute('href', url);
-  link.setAttribute('download', `${filename}_${new Date().toISOString().slice(0, 10)}.csv`);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  const worksheet = XLSX.utils.json_to_sheet(data);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Datos');
+
+  // Ajustar anchos de columnas dinámicamente
+  const colWidths = headers.map(h => {
+    let maxLen = h.label.length;
+    data.forEach(row => {
+      const cellVal = String(row[h.label] || '');
+      if (cellVal.length > maxLen) {
+        maxLen = Math.min(cellVal.length, 55);
+      }
+    });
+    return { wch: maxLen + 3 };
+  });
+  worksheet['!cols'] = colWidths;
+
+  // Exportar como archivo binario nativo .xlsx
+  const fileTitle = `${filename}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+  XLSX.writeFile(workbook, fileTitle);
 }
