@@ -251,7 +251,7 @@ export default function UsuarioAdd({ onSave, onCancel }) {
             <input
               type="password"
               className="form-input"
-              placeholder="Vrf12345 (por defecto)"
+              placeholder="••••••••"
               value={formData.password}
               onChange={e => setFormData({ ...formData, password: e.target.value })}
             />
