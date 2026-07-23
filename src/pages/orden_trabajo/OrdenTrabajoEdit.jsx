@@ -14,6 +14,8 @@ import { fetchMensajesOt, createMensajeOt } from '../../api/mensajesOt.api';
 import { fetchInformesOt, createInformeOt, updateInformeOt } from '../../api/informeOt.api';
 import { fetchImagenesInformeOt, createImagenInformeOt, deleteImagenInformeOt } from '../../api/imagenesInformeOt.api';
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 export default function OrdenTrabajoEdit({ orden, usuarios, clientes, tiposOt, estadosOt, isAdmin, onSave, onDelete, onRestore, onCancel }) {
   const [activeSubTab, setActiveSubTab] = useState('general'); // 'general' | 'activos' | 'tecnicos' | 'informe' | 'multimedia' | 'gastos' | 'bitacora'
 
@@ -158,11 +160,15 @@ export default function OrdenTrabajoEdit({ orden, usuarios, clientes, tiposOt, e
   const handleFileUpload = async (file, type) => {
     const fData = new FormData();
     fData.append('file', file);
-    const res = await fetch(`/api/upload?type=${type}`, {
+    const endpoint = `${BACKEND_URL}/api/upload?type=${type}`;
+    const res = await fetch(endpoint, {
       method: 'POST',
       body: fData
     });
-    if (!res.ok) throw new Error('Error al subir el archivo');
+    if (!res.ok) {
+      const errJson = await res.json().catch(() => ({}));
+      throw new Error(errJson.message || 'Error al subir el archivo');
+    }
     const json = await res.json();
     return json.url;
   };
