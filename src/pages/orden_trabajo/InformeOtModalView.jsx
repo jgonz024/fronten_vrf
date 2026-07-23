@@ -64,38 +64,39 @@ export default function InformeOtModalView({ orden, onClose }) {
       style={{
         position: 'fixed',
         inset: 0,
-        backgroundColor: 'rgba(5, 12, 28, 0.65)',
-        backdropFilter: 'blur(8px)',
-        zIndex: 1100,
+        backgroundColor: 'rgba(5, 12, 28, 0.75)',
+        backdropFilter: 'blur(10px)',
+        zIndex: 9999,
         display: 'flex',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         justifyContent: 'center',
-        padding: '16px'
+        padding: '75px 16px 24px 16px',
+        overflowY: 'auto'
       }}
     >
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          background: 'rgba(15, 23, 42, 0.95)',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
+          background: 'rgba(15, 23, 42, 0.98)',
+          border: '1px solid rgba(0, 198, 255, 0.3)',
           borderRadius: 'var(--radius-lg, 12px)',
           width: '100%',
-          maxWidth: '780px',
-          maxHeight: '85vh',
+          maxWidth: '820px',
+          maxHeight: 'calc(100vh - 100px)',
           display: 'flex',
           flexDirection: 'column',
-          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.5)',
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 198, 255, 0.1)',
           overflow: 'hidden'
         }}
       >
         {/* Header */}
         <div style={{
-          padding: '12px 16px',
+          padding: '14px 18px',
           borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
           display: 'flex',
           justify: 'space-between',
           alignItems: 'center',
-          background: 'rgba(255, 255, 255, 0.02)'
+          background: 'rgba(255, 255, 255, 0.03)'
         }}>
           <div>
             <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--accent-cyan)' }}>
@@ -107,17 +108,31 @@ export default function InformeOtModalView({ orden, onClose }) {
           </div>
           <button
             onClick={onClose}
-            className="btn btn-secondary"
-            style={{ padding: '4px 8px', fontSize: '11px' }}
+            style={{
+              background: 'rgba(239, 68, 68, 0.15)',
+              border: '1px solid rgba(239, 68, 68, 0.4)',
+              color: '#f87171',
+              borderRadius: '50%',
+              width: '32px',
+              height: '32px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              fontSize: '15px',
+              fontWeight: 'bold',
+              transition: 'all 0.15s ease'
+            }}
+            title="Cerrar modal"
           >
-            ✕ Cerrar
+            ✕
           </button>
         </div>
 
         {/* Content */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-secondary)', fontSize: '12px' }}>
+            <div style={{ textAlign: 'center', padding: '30px', color: 'var(--text-secondary)', fontSize: '12px' }}>
               Cargando informe(s)...
             </div>
           ) : error ? (
@@ -125,12 +140,12 @@ export default function InformeOtModalView({ orden, onClose }) {
               {error}
             </div>
           ) : informes.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-secondary)', fontSize: '12px' }}>
+            <div style={{ textAlign: 'center', padding: '30px', color: 'var(--text-secondary)', fontSize: '12px' }}>
               Esta Orden de Trabajo no registra informes técnicos.
             </div>
           ) : (
             <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-              {/* Si hay más de 1 informe, mostrar lista selector en la izquierda */}
+              {/* Si hay más de 1 informe, mostrar selector lateral */}
               {informes.length > 1 && (
                 <div style={{
                   width: '220px',
@@ -140,7 +155,7 @@ export default function InformeOtModalView({ orden, onClose }) {
                   flexDirection: 'column',
                   gap: '6px'
                 }}>
-                  <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
+                  <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '4px' }}>
                     Seleccionar Informe ({informes.length})
                   </div>
                   {informes.map((inf, idx) => {
@@ -154,7 +169,7 @@ export default function InformeOtModalView({ orden, onClose }) {
                           padding: '8px 10px',
                           borderRadius: 'var(--radius-sm, 6px)',
                           border: isSelected ? '1px solid var(--accent-cyan)' : '1px solid rgba(255,255,255,0.06)',
-                          background: isSelected ? 'rgba(6, 182, 212, 0.15)' : 'rgba(255,255,255,0.02)',
+                          background: isSelected ? 'rgba(6, 182, 212, 0.18)' : 'rgba(255,255,255,0.02)',
                           color: isSelected ? '#fff' : 'var(--text-secondary)',
                           fontSize: '11px',
                           cursor: 'pointer',
@@ -179,7 +194,7 @@ export default function InformeOtModalView({ orden, onClose }) {
                       <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff', marginBottom: '4px' }}>
                         {selectedInforme.titulo}
                       </div>
-                      <div style={{ fontSize: '11px', color: 'var(--accent-cyan)', marginBottom: '8px' }}>
+                      <div style={{ fontSize: '11px', color: 'var(--accent-cyan)', marginBottom: '4px' }}>
                         👤 Redactado por: <strong>{selectedInforme.tecnico_nombre || 'No especificado'}</strong>
                       </div>
                       {selectedInforme.fecha_hora && (
@@ -206,7 +221,7 @@ export default function InformeOtModalView({ orden, onClose }) {
                       {loadingImages ? (
                         <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Cargando imágenes...</div>
                       ) : reportImages.length === 0 ? (
-                        <div style={{ fontSize: '11px', color: 'var(--text-secondary)', italic: 'true' }}>No se han adjuntado fotografías a este informe.</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontStyle: 'italic' }}>No se han adjuntado fotografías a este informe.</div>
                       ) : (
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '10px' }}>
                           {reportImages.map(img => (
@@ -239,6 +254,23 @@ export default function InformeOtModalView({ orden, onClose }) {
               </div>
             </div>
           )}
+        </div>
+
+        {/* Footer */}
+        <div style={{
+          padding: '10px 16px',
+          borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+          display: 'flex',
+          justify: 'flex-end',
+          background: 'rgba(255, 255, 255, 0.02)'
+        }}>
+          <button
+            onClick={onClose}
+            className="btn btn-secondary"
+            style={{ fontSize: '11px', padding: '6px 14px' }}
+          >
+            ✕ Cerrar Ventana
+          </button>
         </div>
       </div>
     </div>
