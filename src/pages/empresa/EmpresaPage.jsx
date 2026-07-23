@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { fetchEmpresa, saveEmpresa } from '../../api/empresa.api';
+import logoImg from '../../assets/images/logo.png';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -63,8 +64,14 @@ export default function EmpresaPage({ userSession }) {
           direccion: data.direccion || '',
           giro: data.giro || '',
           telefono_contacto: data.telefono_contacto || '',
-          logo_url: data.logo_url || ''
+          logo_url: data.logo_url || '/uploads/empresa/logo/logo.png'
         });
+      } else {
+        // Formulario inicial de creación: Ya contiene la imagen existente logo.png por defecto
+        setFormData(prev => ({
+          ...prev,
+          logo_url: '/uploads/empresa/logo/logo.png'
+        }));
       }
     } catch (err) {
       setError(err.message || 'Error al cargar datos de la empresa');
@@ -75,6 +82,13 @@ export default function EmpresaPage({ userSession }) {
 
   const handleLogoUpload = async (file) => {
     if (!file) return null;
+
+    // Validación estricta de formato PNG
+    const isPng = file.type === 'image/png' || file.name.toLowerCase().endsWith('.png');
+    if (!isPng) {
+      throw new Error('El logo de la empresa debe ser únicamente una imagen en formato PNG (.png)');
+    }
+
     const body = new FormData();
     body.append('file', file);
 
@@ -83,12 +97,9 @@ export default function EmpresaPage({ userSession }) {
       body
     });
 
-    if (!res.ok) {
-      throw new Error('Error al subir la imagen del logo');
-    }
-    const json = await res.json();
-    if (!json.success) {
-      throw new Error(json.message || 'Error al procesar el archivo del logo');
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok || !json.success) {
+      throw new Error(json.message || 'Error al procesar el archivo del logo PNG');
     }
     return json.url;
   };
@@ -100,7 +111,7 @@ export default function EmpresaPage({ userSession }) {
     setSuccessMsg('');
 
     try {
-      let currentLogoUrl = formData.logo_url;
+      let currentLogoUrl = formData.logo_url || '/uploads/empresa/logo/logo.png';
 
       if (logoFile) {
         const uploadedUrl = await handleLogoUpload(logoFile);
@@ -122,10 +133,10 @@ export default function EmpresaPage({ userSession }) {
         direccion: saved.direccion || '',
         giro: saved.giro || '',
         telefono_contacto: saved.telefono_contacto || '',
-        logo_url: saved.logo_url || ''
+        logo_url: saved.logo_url || '/uploads/empresa/logo/logo.png'
       });
       setLogoFile(null);
-      setSuccessMsg('✅ Datos de la empresa guardados correctamente.');
+      setSuccessMsg('✅ Datos de la empresa guardados correctamente en /src/assets/images/logo.png y base de datos.');
     } catch (err) {
       setError(err.message || 'Error al guardar datos de la empresa');
     } finally {
@@ -140,6 +151,11 @@ export default function EmpresaPage({ userSession }) {
       </div>
     );
   }
+
+  // Resolver la URL de la imagen actual a mostrar
+  const displayLogoSrc = logoFile
+    ? URL.createObjectURL(logoFile)
+    : (formData.logo_url ? formatFileUrl(formData.logo_url) : logoImg);
 
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto' }}>
@@ -238,36 +254,42 @@ export default function EmpresaPage({ userSession }) {
             />
           </div>
 
-          {/* Imagen del Logo de la Empresa */}
+          {/* Imagen del Logo de la Empresa (Sólo PNG) */}
           <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '14px', marginTop: '4px' }}>
             <label className="form-label" style={{ fontSize: '11px', color: 'var(--accent-cyan)' }}>
-              📷 Logotipo de la Empresa
+              📷 Logotipo de la Empresa (Archivo logo.png - Únicamente formato PNG)
             </label>
             <p style={{ fontSize: '10px', color: 'var(--text-muted)', margin: '0 0 10px 0' }}>
-              Suba la imagen corporativa oficial en formato PNG o JPG. Se utilizará en membretes e informes técnicos.
+              Seleccione la nueva imagen corporativa en formato PNG (.png). Se actualizará como <strong>logo.png</strong> en <code>/src/assets/images/logo.png</code>.
             </p>
 
             <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
               <input
                 type="file"
-                accept="image/*"
+                accept="image/png"
                 onChange={e => {
                   if (e.target.files && e.target.files[0]) {
-                    setLogoFile(e.target.files[0]);
+                    const file = e.target.files[0];
+                    const isPng = file.type === 'image/png' || file.name.toLowerCase().endsWith('.png');
+                    if (!isPng) {
+                      setError('El logo de la empresa debe ser únicamente un archivo en formato PNG (.png).');
+                      e.target.value = '';
+                      return;
+                    }
+                    setError('');
+                    setLogoFile(file);
                   }
                 }}
                 style={{ fontSize: '11px', color: 'var(--text-secondary)' }}
               />
 
-              {(logoFile || formData.logo_url) && (
-                <div style={{ position: 'relative', border: '1px solid rgba(0, 198, 255, 0.4)', borderRadius: '6px', padding: '4px', background: 'rgba(255,255,255,0.04)', height: '65px', width: '140px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <img
-                    src={logoFile ? URL.createObjectURL(logoFile) : formatFileUrl(formData.logo_url)}
-                    alt="Logo Empresa"
-                    style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }}
-                  />
-                </div>
-              )}
+              <div style={{ position: 'relative', border: '1px solid rgba(0, 198, 255, 0.4)', borderRadius: '6px', padding: '4px', background: 'rgba(255,255,255,0.04)', height: '65px', width: '140px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <img
+                  src={displayLogoSrc}
+                  alt="Logo Empresa"
+                  style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }}
+                />
+              </div>
             </div>
           </div>
 
