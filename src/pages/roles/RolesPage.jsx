@@ -90,7 +90,7 @@ export default function RolesPage({ userSession }) {
   if (loading && roles.length === 0) {
     return (
       <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-        ⏳ Cargando roles desde PostgreSQL...
+        ⏳ Cargando roles desde la base de datos MySQL...
       </div>
     );
   }

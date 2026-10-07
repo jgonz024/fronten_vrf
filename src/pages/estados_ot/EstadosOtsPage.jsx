@@ -90,7 +90,7 @@ export default function EstadosOtsPage({ userSession }) {
   if (loading && estados.length === 0) {
     return (
       <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-        ⏳ Cargando estados de OT desde PostgreSQL...
+        ⏳ Cargando estados de OT desde la base de datos MySQL...
       </div>
     );
   }

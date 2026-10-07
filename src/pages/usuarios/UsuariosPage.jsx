@@ -91,7 +91,7 @@ export default function UsuariosPage({ userSession }) {
   if (loading && usuarios.length === 0) {
     return (
       <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-        ⏳ Cargando usuarios desde PostgreSQL...
+        ⏳ Cargando usuarios desde la base de datos MySQL...
       </div>
     );
   }

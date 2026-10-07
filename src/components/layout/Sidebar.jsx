@@ -250,10 +250,10 @@ export default function Sidebar({ activeTab, setActiveTab, userSession }) {
       <div style={{ marginTop: 'auto', padding: '12px', background: 'rgba(10, 18, 41, 0.5)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--status-active-text)' }}>
           <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--status-active-text)', boxShadow: '0 0 8px var(--status-active-text)' }} />
-          Base de Datos PostgreSQL (vrfsystems)
+          Base de Datos MySQL (WKF_CONTROL)
         </div>
         <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-          Host: localhost:5432
+          Host: localhost:3306
         </div>
       </div>
     </aside>

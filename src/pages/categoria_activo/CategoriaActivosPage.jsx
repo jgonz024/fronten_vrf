@@ -90,7 +90,7 @@ export default function CategoriaActivosPage({ userSession }) {
   if (loading && categorias.length === 0) {
     return (
       <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-        ⏳ Cargando categorías de activo desde PostgreSQL...
+        ⏳ Cargando categorías de activo desde la base de datos MySQL...
       </div>
     );
   }

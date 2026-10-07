@@ -124,7 +124,7 @@ export default function OrdenesTrabajosPage({ userSession }) {
   if (loading && ordenes.length === 0) {
     return (
       <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-        ⏳ Cargando órdenes de trabajo desde PostgreSQL...
+        ⏳ Cargando órdenes de trabajo desde la base de datos MySQL...
       </div>
     );
   }

@@ -90,7 +90,7 @@ export default function TipoClientesPage({ userSession }) {
   if (loading && tipos.length === 0) {
     return (
       <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-        ⏳ Cargando tipos de cliente desde PostgreSQL...
+        ⏳ Cargando tipos de cliente desde la base de datos MySQL...
       </div>
     );
   }

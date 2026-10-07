@@ -104,7 +104,7 @@ export default function ClientesPage({ userSession }) {
   if (loading && clientes.length === 0) {
     return (
       <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-        ⏳ Cargando directorio de clientes desde PostgreSQL...
+        ⏳ Cargando directorio de clientes desde la base de datos MySQL...
       </div>
     );
   }

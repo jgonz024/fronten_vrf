@@ -117,7 +117,7 @@ export default function ActivosPage({ userSession }) {
   if (isLoading && activos.length === 0) {
     return (
       <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-        ⏳ Cargando directorio de activos desde PostgreSQL...
+        ⏳ Cargando directorio de activos desde la base de datos MySQL...
       </div>
     );
   }

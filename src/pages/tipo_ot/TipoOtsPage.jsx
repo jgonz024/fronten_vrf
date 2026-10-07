@@ -90,7 +90,7 @@ export default function TipoOtsPage({ userSession }) {
   if (loading && tipos.length === 0) {
     return (
       <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-        ⏳ Cargando tipos de OT desde PostgreSQL...
+        ⏳ Cargando tipos de OT desde la base de datos MySQL...
       </div>
     );
   }

@@ -90,7 +90,7 @@ export default function CategoriaClientesPage({ userSession }) {
   if (loading && categorias.length === 0) {
     return (
       <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-        ⏳ Cargando categorías de cliente desde PostgreSQL...
+        ⏳ Cargando categorías de cliente desde la base de datos MySQL...
       </div>
     );
   }

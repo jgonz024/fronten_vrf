@@ -90,7 +90,7 @@ export default function MarcaActivosPage({ userSession }) {
   if (loading && marcas.length === 0) {
     return (
       <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-        ⏳ Cargando marcas de activos desde PostgreSQL...
+        ⏳ Cargando marcas de activos desde la base de datos MySQL...
       </div>
     );
   }
