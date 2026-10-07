@@ -15,7 +15,8 @@ export default function MainLayout({ activeTab, setActiveTab, userSession, onCha
     tipo_ot: { title: 'Gestión de Tipos de OT', subtitle: 'Administración de categorías y tipos de órdenes de trabajo' },
     estados_ot: { title: 'Gestión de Estados de OT', subtitle: 'Control de flujos e hitos para órdenes de trabajo' },
     admin_ot: { title: 'Administración de OT', subtitle: 'Configuración general de tipos y estados de órdenes de trabajo' },
-    ordenes_trabajo: { title: 'Órdenes de Trabajo', subtitle: 'Asignación, programación y control de órdenes de trabajo en terreno' }
+    ordenes_trabajo: { title: 'Órdenes de Trabajo', subtitle: 'Asignación, programación y control de órdenes de trabajo en terreno' },
+    informes_tecnicos: { title: 'Informes Técnicos y Dosieres', subtitle: 'Consolidación de órdenes de trabajo por cliente, expedientes técnicos y reportes en PDF' }
   };
 
   const currentHeader = titles[activeTab] || { title: 'VRF Systems', subtitle: 'Sistema de Gestión' };

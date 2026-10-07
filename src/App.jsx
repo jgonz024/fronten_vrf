@@ -20,6 +20,7 @@ import EstadosOtsPage from './pages/estados_ot/EstadosOtsPage';
 import OrdenesTrabajosPage from './pages/orden_trabajo/OrdenesTrabajosPage';
 import AdminOtPage from './pages/admin_ot/AdminOtPage';
 import EmpresaPage from './pages/empresa/EmpresaPage';
+import InformesTecnicosPage from './pages/informes_tecnicos/InformesTecnicosPage';
 
 const SESSION_KEY = import.meta.env.VITE_SESSION_STORAGE_KEY;
 
@@ -180,6 +181,7 @@ export default function App() {
         {activeTab === 'estados_ot' && <EstadosOtsPage userSession={session} />}
         {activeTab === 'admin_ot' && <AdminOtPage userSession={session} />}
         {activeTab === 'ordenes_trabajo' && <OrdenesTrabajosPage userSession={session} />}
+        {activeTab === 'informes_tecnicos' && <InformesTecnicosPage userSession={session} />}
       </MainLayout>
     </>
   );

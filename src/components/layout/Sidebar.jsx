@@ -17,7 +17,7 @@ export default function Sidebar({ activeTab, setActiveTab, userSession }) {
   // Inicialmente expandimos la sección que contenga la pestaña activa
   const [collapsedSections, setCollapsedSections] = useState(() => {
     const clientesTabs = ['clientes', 'tipo_cliente', 'categoria_cliente', 'categoria_activo', 'tipo_activo', 'marca_activo', 'activos'];
-    const otTabs = ['admin_ot', 'ordenes_trabajo'];
+    const otTabs = ['admin_ot', 'ordenes_trabajo', 'informes_tecnicos'];
     
     return {
       'Administración': !['usuarios', 'roles'].includes(activeTab),
@@ -61,6 +61,7 @@ export default function Sidebar({ activeTab, setActiveTab, userSession }) {
       title: 'Órdenes de Trabajo',
       items: [
         { id: 'ordenes_trabajo', label: 'Órdenes de Trabajo', icon: '📝', subtitle: 'Gestión de órdenes de trabajo' },
+        { id: 'informes_tecnicos', label: 'Informes Técnicos', icon: '📑', subtitle: 'Dosier consolidado por cliente' },
         { id: 'admin_ot', label: 'Administración de OT', icon: '⚙️', subtitle: 'Configurar Tipos, Estados y parámetros' }
       ]
     }
@@ -83,9 +84,13 @@ export default function Sidebar({ activeTab, setActiveTab, userSession }) {
       }
     } else if (sec.title === 'Órdenes de Trabajo') {
       if (isAdmin) {
-        allowedIds = ['ordenes_trabajo', 'admin_ot'];
+        allowedIds = ['ordenes_trabajo', 'informes_tecnicos', 'admin_ot'];
+      } else if (isSupervisor || isTecnico || isGerente) {
+        allowedIds = ['ordenes_trabajo', 'informes_tecnicos'];
+      } else if (isCliente) {
+        allowedIds = ['informes_tecnicos'];
       } else {
-        allowedIds = ['ordenes_trabajo'];
+        allowedIds = ['ordenes_trabajo', 'informes_tecnicos'];
       }
     }
     return {
